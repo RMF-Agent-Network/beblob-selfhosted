@@ -1,5 +1,4 @@
 # pubic-comments-widget
-***
 
 ## Name
 TODO - choose name, right now I'm going with a dull public-comments-widget
