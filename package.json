@@ -1,0 +1,19 @@
+{
+  "name": "pubic-comments-widget",
+  "version": "1.0.0",
+  "description": "This is an opensource widget allowing bloggers to insert comment section to their blogs hosted on GitLab Pages. The comments use GitLab issues underneath.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://gitlab.com/antonbelev/pubic-comments-widget.git"
+  },
+  "author": "Anton Belev",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://gitlab.com/antonbelev/pubic-comments-widget/issues"
+  },
+  "homepage": "https://gitlab.com/antonbelev/pubic-comments-widget#readme"
+}
