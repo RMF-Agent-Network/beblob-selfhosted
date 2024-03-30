@@ -68,6 +68,7 @@ function requestAccessToken(code) {
 // Function to fetch project ID based on project name
 async function fetchProjectId(accessToken) {
     try {
+        showLoadingOverlay(); // Show loading overlay
         const projectsUrl = `https://gitlab.com/api/v4/projects?search=${encodeURIComponent(projectName)}`;
         const response = await fetch(projectsUrl, {
             headers: {
@@ -90,6 +91,8 @@ async function fetchProjectId(accessToken) {
         fetchGitLabIssues(projectId, accessToken);
     } catch (error) {
         console.error('Error fetching project ID:', error);
+    } finally {
+        hideLoadingOverlay(); // Hide loading overlay once done
     }
 }
 
@@ -160,13 +163,13 @@ async function displayIssues(issues, accessToken) {
         const discussions = await fetchIssueDiscussions(issue.iid, accessToken);
         if (Array.isArray(discussions)) {
             discussions.forEach(discussion => {
-                discussion.notes.forEach(comment => {
-                    const commentElement = createCommentElement(comment);
+                discussion.notes.forEach((note, index) => {
+                    const isIndented = index > 0 && note.type === "DiscussionNote";
+                    const commentElement = createCommentElement(note, isIndented);
                     issueElement.appendChild(commentElement);
                 });
             });
         }
-
         // If no discussions found
         if (discussions.length === 0) {
             const noCommentsElement = document.createElement('div');
@@ -179,28 +182,56 @@ async function displayIssues(issues, accessToken) {
 }
 
 // Function to create a comment element
-function createCommentElement(comment) {
+function createCommentElement(comment, isIndented) {
     const commentElement = document.createElement('div');
     commentElement.classList.add('comment');
 
-    // Comment Author
-    const authorElement = document.createElement('div');
-    authorElement.classList.add('comment-author');
+    if (isIndented) {
+        // If it's a threaded comment (not the top-level), indent
+        commentElement.style.marginLeft = '30px';
+    }
+
+    // Comment Header (Author and Timestamp)
+    const headerElement = document.createElement('div');
+    headerElement.classList.add('comment-header');
 
     // Author Avatar
     const authorAvatar = document.createElement('img');
     authorAvatar.src = comment.author.avatar_url;
     authorAvatar.alt = comment.author.name;
-    authorElement.appendChild(authorAvatar);
+    headerElement.appendChild(authorAvatar);
+
+    // Author Info (Name and Timestamp)
+    const authorInfo = document.createElement('div');
+    authorInfo.classList.add('author-info');
 
     // Author Name with Link to Profile
     const authorLink = document.createElement('a');
     authorLink.href = comment.author.web_url;
     authorLink.textContent = comment.author.name;
+    authorLink.classList.add('author-name');
+    authorInfo.appendChild(authorLink);
 
-    authorElement.appendChild(authorAvatar);
-    authorElement.appendChild(authorLink);
-    commentElement.appendChild(authorElement);
+    // Commented on Text
+    const commentedOn = document.createElement('span');
+    commentedOn.classList.add('commented-on');
+    commentedOn.textContent = 'commented on';
+    authorInfo.appendChild(commentedOn);
+
+    // Comment Timestamp
+    const timestamp = document.createElement('span');
+    timestamp.classList.add('comment-timestamp');
+    const commentDate = new Date(comment.created_at);
+    const formattedDate = `${commentDate.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+    })}`;
+    timestamp.textContent = formattedDate;
+    authorInfo.appendChild(timestamp);
+
+    headerElement.appendChild(authorInfo);
+    commentElement.appendChild(headerElement);
 
     // Comment Body
     const commentBody = document.createElement('div');
@@ -213,15 +244,31 @@ function createCommentElement(comment) {
 // Check if there's a code in the URL (GitLab redirect)
 handleGitLabRedirect();
 
+// Function to show loading overlay
+function showLoadingOverlay() {
+    const overlay = document.getElementById('overlay');
+    overlay.style.display = 'flex';
+}
+
+// Function to hide loading overlay
+function hideLoadingOverlay() {
+    const overlay = document.getElementById('overlay');
+    overlay.style.display = 'none';
+}
+
 // Check if we have a GitLab access token in localStorage
 const storedToken = localStorage.getItem(GitLabIssuesConfig.localStorageKey);
 
-if (storedToken) {
-    // If token exists, fetch project details
-    fetchProjectId(storedToken);
-} else {
+if (!storedToken) {
     // If token doesn't exist, show authentication button
     const authButton = document.getElementById('authButton');
     authButton.style.display = 'block';
-    authButton.addEventListener('click', authenticateWithGitLab);
+    authButton.addEventListener('click', function () {
+        authenticateWithGitLab();
+        // Hide the button container after clicking
+        document.getElementById('gitlab-button-container').style.display = 'none';
+    });
+} else {
+    // If token exists, fetch project details
+    fetchProjectId(storedToken);
 }

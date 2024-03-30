@@ -11,11 +11,20 @@
 <body>
 <h1>GitLab Issues</h1>
 
-<!-- Authentication Button -->
-<button id="authButton">Authenticate with GitLab</button>
+<div class="gitlab-button-container">
+    <button id="authButton" class="gitlab-button">
+        <img src="images/gitlab-logo-500.svg" alt="GitLab Logo" class="gitlab-logo">
+        Authenticate with GitLab
+    </button>
+</div>
 
 <div id="issuesContainer">
     <!-- Issues will be displayed here -->
+</div>
+
+<!-- Loading overlay -->
+<div id="overlay" class="overlay">
+    <div class="overlay-text">Loading comments...</div>
 </div>
 
 <script src="js/main.js"></script>

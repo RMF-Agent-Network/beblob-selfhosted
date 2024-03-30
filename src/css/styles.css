@@ -11,24 +11,96 @@ body {
     font-weight: bold;
     margin-bottom: 10px;
 }
+/* Updated CSS for comment styling */
 .comment {
-    border-left: 2px solid #007bff;
-    padding-left: 10px;
-    margin-left: 10px;
-    margin-bottom: 10px;
+    margin-bottom: 20px;
+    padding: 15px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
 }
-.comment-author {
+
+.comment-header {
     display: flex;
     align-items: center;
     margin-bottom: 5px;
 }
-.comment-author img {
-    width: 30px;
-    height: 30px;
+
+.comment-header img {
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
     margin-right: 10px;
 }
-.comment-author a {
+
+.comment-header .author-info {
+    display: flex;
+    align-items: center; /* Align items horizontally */
+}
+
+.comment-header .author-info .author-name {
+    font-weight: bold;
+    margin-right: 5px;
     color: #007bff;
     text-decoration: none;
+}
+
+.comment-header .author-info .author-name:hover {
+    text-decoration: underline;
+}
+
+.comment-header .author-info .commented-on {
+    margin-right: 5px;
+}
+
+.comment-header .author-info .comment-timestamp {
+    font-style: italic;
+}
+
+
+.gitlab-button-container {
+    display: flex;
+    align-items: center;
+}
+
+.gitlab-button {
+    display: inline-flex;
+    align-items: center;
+    vertical-align: middle;
+    padding: 5px;
+    background-color: #f0f0f0; /* Light Gray Background */
+    color: #171321; /* Text Color */
+    font-size: 16px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease; /* Smooth transition */
+}
+
+.gitlab-button:hover {
+    background-color: #e0e0e0; /* Light Gray Background on hover */
+}
+
+.gitlab-logo {
+    width: 24px;
+    height: 24px;
+    margin-right: 5px;
+    vertical-align: middle;
+}
+
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    display: none;
+    justify-content: center;
+    align-items: center;
+}
+
+.overlay-text {
+    color: white;
+    font-size: 20px;
 }
