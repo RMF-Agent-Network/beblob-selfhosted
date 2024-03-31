@@ -3,32 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <title>GitLab Comments</title>
-    <meta name="description" content="BeBlob is an open-source library allowing you to add comment section to your GitLab hosted Hexo Cactus blogs.">
+    <meta name="description"
+          content="BeBlob is an open-source library allowing you to add comment section to your GitLab hosted Hexo Cactus blogs.">
     <!-- Link to your CSS file -->
     <link rel="stylesheet" href="/css/styles.css">
 <script defer src="bundle.js"></script></head>
 <body>
-<h1>GitLab Issues</h1>
+    <h1>GitLab Issues</h1>
 
-<div class="gitlab-button-container">
-    <button id="authButton" class="gitlab-button">
-        <img src="/images/gitlab-logo-500.svg" alt="GitLab Logo" class="gitlab-logo">
-        Authenticate with GitLab
-    </button>
-</div>
+    <div class="gitlab-button-container">
+        <button id="authButton" class="gitlab-button">
+            <img src="/images/gitlab-logo-500.svg" alt="GitLab Logo" class="gitlab-logo">
+            Authenticate with GitLab
+        </button>
+    </div>
 
-<div id="issuesContainer">
-    <!-- Issues will be displayed here -->
-</div>
+    <div id="issuesContainer">
+        <!-- Issues will be displayed here -->
+    </div>
 
-<!-- Loading overlay -->
-<div id="overlay" class="overlay">
-    <div class="overlay-text">Loading comments...</div>
-</div>
+    <!-- Loading overlay -->
+    <div id="overlay" class="overlay">
+        <div class="overlay-text">Loading comments...</div>
+    </div>
 
-<div class="comment-textarea-container">
-    <textarea id="newComment" placeholder="Add a new comment..."></textarea>
-    <button id="addCommentButton">Add Comment</button>
-</div>
+    <div class="comment-textarea-container">
+        <!-- Add tabs for Markdown and Preview -->
+        <div class="tab">
+            <button class="tablinks" data-tab="Markdown">Markdown</button>
+            <button class="tablinks" data-tab="Preview">Preview</button>
+        </div>
+
+        <!-- Textarea for Markdown -->
+        <div id="Markdown" class="tabcontent">
+            <textarea id="newComment" placeholder="Add a new comment..."></textarea>
+        </div>
+
+        <!-- Div to display the preview -->
+        <div id="Preview" class="tabcontent" style="display: none;">
+            <div id="previewContent"></div>
+        </div>
+
+        <!-- Button to add comment -->
+        <button id="addCommentButton">Add Comment</button>
+    </div>
+
 </body>
 </html>

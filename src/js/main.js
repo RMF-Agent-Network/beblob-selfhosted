@@ -1,4 +1,4 @@
-import marked from "marked";
+import { parse } from "marked";
 
 // Default Configuration
 const gitlabClientId = 'b13dc0c7b49e390d25c1278061c48ca938c5f48b72a6ec8f6e5d87c9d0cafc19';
@@ -245,7 +245,7 @@ function createCommentElement(comment, isIndented) {
     // Comment Body (Markdown)
     const bodyElement = document.createElement('div');
     bodyElement.classList.add('comment-body');
-    bodyElement.innerHTML = marked.parse(comment.body);
+    bodyElement.innerHTML = parse(comment.body);
     commentElement.appendChild(bodyElement);
 
     return commentElement;
@@ -307,6 +307,53 @@ function hideLoadingOverlay() {
     const overlay = document.getElementById('overlay');
     overlay.style.display = 'none';
 }
+
+// Function to switch between tabs
+function openTab(tabName) {
+    // Get all elements with class="tabcontent" and hide them
+    const tabcontent = document.getElementsByClassName("tabcontent");
+    for (let i = 0; i < tabcontent.length; i++) {
+        tabcontent[i].style.display = "none";
+    }
+
+    // Get all elements with class="tablinks" and remove the class "active"
+    const tablinks = document.getElementsByClassName("tablinks");
+    for (let i = 0; i < tablinks.length; i++) {
+        tablinks[i].classList.remove("active");
+    }
+
+    // Show the current tab, and add an "active" class to the button that corresponds to the tab
+    document.getElementById(tabName).style.display = "block";
+    document.querySelector(`button[data-tab="${tabName}"]`).classList.add("active");
+
+    // If switching to Preview tab, update the preview
+    if (tabName === 'Preview') {
+        updatePreview();
+    }
+}
+
+// Function to update the preview with Markdown content
+function updatePreview() {
+    const markdownContent = document.getElementById("newComment").value;
+    const previewContent = document.getElementById("previewContent");
+    previewContent.innerHTML = parse(markdownContent);
+}
+
+// Event listener for clicking on the "Add Comment" button
+document.getElementById("addCommentButton").addEventListener("click", () => {
+    const newComment = document.getElementById("newComment").value;
+    alert("New comment: \n " + newComment);
+    // Perform action to add comment here, for example:
+    // addComment(newComment);
+});
+
+// Event listener for tab clicks
+document.querySelectorAll('.tablinks').forEach(tab => {
+    tab.addEventListener('click', () => {
+        const tabName = tab.getAttribute('data-tab');
+        openTab(tabName);
+    });
+});
 
 // Check if we have a GitLab access token in localStorage
 const storedToken = localStorage.getItem(GitLabIssuesConfig.localStorageKey);
