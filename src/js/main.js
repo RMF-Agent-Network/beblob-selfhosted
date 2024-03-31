@@ -1,3 +1,5 @@
+import marked from "marked";
+
 // Default Configuration
 const gitlabClientId = 'b13dc0c7b49e390d25c1278061c48ca938c5f48b72a6ec8f6e5d87c9d0cafc19';
 const defaultRedirectUri = 'http://localhost:8080'; // Default redirect URI
@@ -149,6 +151,13 @@ async function displayIssues(issues, accessToken) {
         return;
     }
 
+    // Create a label for number of comments
+    const totalComments = issues.reduce((acc, issue) => acc + issue.user_notes_count, 0);
+    const commentsLabel = document.createElement('div');
+    commentsLabel.classList.add('comments-label');
+    commentsLabel.textContent = `${totalComments} Comments - powered by BeBlob`;
+    issuesContainer.appendChild(commentsLabel);
+
     for (const issue of issues) {
         const issueElement = document.createElement('div');
         issueElement.classList.add('issue');
@@ -215,7 +224,7 @@ function createCommentElement(comment, isIndented) {
     // Commented on Text
     const commentedOn = document.createElement('span');
     commentedOn.classList.add('commented-on');
-    commentedOn.textContent = 'commented on';
+    commentedOn.textContent = ' commented on ';
     authorInfo.appendChild(commentedOn);
 
     // Comment Timestamp
@@ -233,12 +242,55 @@ function createCommentElement(comment, isIndented) {
     headerElement.appendChild(authorInfo);
     commentElement.appendChild(headerElement);
 
-    // Comment Body
-    const commentBody = document.createElement('div');
-    commentBody.textContent = comment.body;
-    commentElement.appendChild(commentBody);
+    // Comment Body (Markdown)
+    const bodyElement = document.createElement('div');
+    bodyElement.classList.add('comment-body');
+    bodyElement.innerHTML = marked.parse(comment.body);
+    commentElement.appendChild(bodyElement);
 
     return commentElement;
+}
+
+// Function to fetch current user details from GitLab
+async function fetchCurrentUser(accessToken) {
+    try {
+        const currentUserUrl = 'https://gitlab.com/api/v4/user';
+        const response = await fetch(currentUserUrl, {
+            headers: {
+                'Authorization': `Bearer ${accessToken}`
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to fetch current user');
+        }
+
+        const userData = await response.json();
+        return userData;
+    } catch (error) {
+        console.error('Error fetching current user:', error);
+        return null;
+    }
+}
+
+// Function to display current user avatar with bubble
+function displayCurrentUserAvatar(user) {
+    const currentUserAvatarContainer = document.createElement('div');
+    currentUserAvatarContainer.classList.add('current-user-avatar-container');
+
+    // Avatar Image
+    const avatarImg = document.createElement('img');
+    avatarImg.src = user.avatar_url;
+    avatarImg.alt = user.name;
+    currentUserAvatarContainer.appendChild(avatarImg);
+
+    // Bubble Element
+    const bubbleElement = document.createElement('div');
+    bubbleElement.classList.add('bubble');
+    currentUserAvatarContainer.appendChild(bubbleElement);
+
+    const textareaContainer = document.querySelector('.comment-textarea-container');
+    textareaContainer.insertBefore(currentUserAvatarContainer, textareaContainer.firstChild);
 }
 
 // Check if there's a code in the URL (GitLab redirect)
@@ -259,16 +311,23 @@ function hideLoadingOverlay() {
 // Check if we have a GitLab access token in localStorage
 const storedToken = localStorage.getItem(GitLabIssuesConfig.localStorageKey);
 
-if (!storedToken) {
+if (storedToken) {
+    // If token exists, fetch project details
+    fetchProjectId(storedToken);
+
+    // Fetch current user details
+    fetchCurrentUser(storedToken)
+        .then(user => {
+            if (user) {
+                displayCurrentUserAvatar(user);
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching current user:', error);
+        });
+} else {
     // If token doesn't exist, show authentication button
     const authButton = document.getElementById('authButton');
     authButton.style.display = 'block';
-    authButton.addEventListener('click', function () {
-        authenticateWithGitLab();
-        // Hide the button container after clicking
-        document.getElementById('gitlab-button-container').style.display = 'none';
-    });
-} else {
-    // If token exists, fetch project details
-    fetchProjectId(storedToken);
+    authButton.addEventListener('click', authenticateWithGitLab);
 }
