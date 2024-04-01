@@ -97,6 +97,10 @@ async function fetchProjectId(accessToken) {
         });
 
         if (!response.ok) {
+            if (response.status === 401) {
+                // Clear token from local storage if it's expired
+                localStorage.removeItem(GitLabIssuesConfig.localStorageKey);
+            }
             throw new Error('Failed to fetch projects');
         }
 
@@ -126,6 +130,10 @@ async function fetchGitLabIssues(projectId, accessToken) {
         });
 
         if (!response.ok) {
+            if (response.status === 401) {
+                // Clear token from local storage if it's expired
+                localStorage.removeItem(GitLabIssuesConfig.localStorageKey);
+            }
             throw new Error('Failed to fetch issues');
         }
 
@@ -146,6 +154,10 @@ async function fetchIssueDiscussions(issueIid, accessToken) {
         });
 
         if (!response.ok) {
+            if (response.status === 401) {
+                // Clear token from local storage if it's expired
+                localStorage.removeItem(GitLabIssuesConfig.localStorageKey);
+            }
             throw new Error('Failed to fetch discussions for issue');
         }
 
@@ -280,6 +292,10 @@ async function fetchCurrentUser(accessToken) {
         });
 
         if (!response.ok) {
+            if (response.status === 401) {
+                // Clear token from local storage if it's expired
+                localStorage.removeItem(GitLabIssuesConfig.localStorageKey);
+            }
             throw new Error('Failed to fetch current user');
         }
 
@@ -373,6 +389,10 @@ document.querySelectorAll('.tablinks').forEach(tab => {
     });
 });
 
+const authButton = document.getElementById('authButton');
+authButton.style.display = 'block';
+authButton.addEventListener('click', authenticateWithGitLab);
+
 // Check if we have a GitLab access token in localStorage
 const storedToken = localStorage.getItem(GitLabIssuesConfig.localStorageKey);
 
@@ -390,9 +410,4 @@ if (storedToken) {
         .catch(error => {
             console.error('Error fetching current user:', error);
         });
-} else {
-    // If token doesn't exist, show authentication button
-    const authButton = document.getElementById('authButton');
-    authButton.style.display = 'block';
-    authButton.addEventListener('click', authenticateWithGitLab);
 }
