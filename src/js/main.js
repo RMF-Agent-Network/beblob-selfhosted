@@ -1,4 +1,22 @@
-import { parse } from "marked";
+import { Marked } from "marked";
+import { markedHighlight } from "marked-highlight";
+import hljs from 'highlight.js';
+
+const marked = new Marked(
+    markedHighlight({
+        langPrefix: 'hljs language-',
+        highlight(code, lang, info) {
+            const language = hljs.getLanguage(lang) ? lang : 'plaintext';
+            return hljs.highlight(code, { language }).value;
+        }
+    })
+);
+marked.setOptions({
+    highlight: function(code, lang) {
+        return hljs.highlight(lang, code).value;
+    }
+});
+
 
 // Default Configuration
 const gitlabClientId = 'b13dc0c7b49e390d25c1278061c48ca938c5f48b72a6ec8f6e5d87c9d0cafc19';
@@ -245,7 +263,7 @@ function createCommentElement(comment, isIndented) {
     // Comment Body (Markdown)
     const bodyElement = document.createElement('div');
     bodyElement.classList.add('comment-body');
-    bodyElement.innerHTML = parse(comment.body);
+    bodyElement.innerHTML = marked.parse(comment.body);
     commentElement.appendChild(bodyElement);
 
     return commentElement;
@@ -336,7 +354,7 @@ function openTab(tabName) {
 function updatePreview() {
     const markdownContent = document.getElementById("newComment").value;
     const previewContent = document.getElementById("previewContent");
-    previewContent.innerHTML = parse(markdownContent);
+    previewContent.innerHTML = marked.parse(markdownContent);
 }
 
 // Event listener for clicking on the "Add Comment" button
