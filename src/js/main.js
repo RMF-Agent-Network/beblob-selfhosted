@@ -1,6 +1,17 @@
 import { Marked } from "marked";
 import { markedHighlight } from "marked-highlight";
 import hljs from 'highlight.js';
+import SimpleMDE from "simplemde"
+
+// Initialize SimpleMDE
+const simplemde = new SimpleMDE({
+    element: document.getElementById("newComment"), // ID of your textarea
+    hideIcons: ["preview", "side-by-side"],
+    renderingConfig: {
+        codeSyntaxHighlighting: true,
+    },
+    tabSize: 4, // Set tab size to 4 spaces
+});
 
 const marked = new Marked(
     markedHighlight({
@@ -368,14 +379,14 @@ function openTab(tabName) {
 
 // Function to update the preview with Markdown content
 function updatePreview() {
-    const markdownContent = document.getElementById("newComment").value;
+    const markdownContent = simplemde.value();
     const previewContent = document.getElementById("previewContent");
     previewContent.innerHTML = marked.parse(markdownContent);
 }
 
 // Event listener for clicking on the "Add Comment" button
 document.getElementById("addCommentButton").addEventListener("click", () => {
-    const newComment = document.getElementById("newComment").value;
+    const newComment = simplemde.value();
     alert("New comment: \n " + newComment);
     // Perform action to add comment here, for example:
     // addComment(newComment);
