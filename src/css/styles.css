@@ -11,37 +11,44 @@ body {
     font-weight: bold;
     margin-bottom: 10px;
 }
+
 /* Updated CSS for comment styling */
 .comment {
     margin-bottom: 20px;
     padding: 15px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
+    border: 1px solid #dcdcde;
+    border-radius: 4px;
+    background-color: #f6f8fa; /* Light gray background */
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .comment-header {
     display: flex;
     align-items: center;
-    margin-bottom: 5px;
+    margin-bottom: 10px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #dcdcde;
 }
 
 .comment-header img {
-    width: 40px;
-    height: 40px;
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
     margin-right: 10px;
 }
 
+/* Updated CSS for comment author info */
 .comment-header .author-info {
     display: flex;
-    align-items: center; /* Align items horizontally */
+    align-items: center;
+    padding-bottom: 5px; /* Add padding to the bottom */
 }
 
 .comment-header .author-info .author-name {
     font-weight: bold;
-    margin-right: 5px;
-    color: #007bff;
+    color: #007bff; /* Blue for author name */
     text-decoration: none;
+    margin-right: 5px;
 }
 
 .comment-header .author-info .author-name:hover {
@@ -53,7 +60,7 @@ body {
 }
 
 .comment-header .author-info .comment-timestamp {
-    font-style: italic;
+    color: #6a737d; /* Gray for timestamp */
 }
 
 /* CSS for comments label */
@@ -61,97 +68,138 @@ body {
     margin-bottom: 10px;
     font-size: 16px;
     font-weight: bold;
+    color: #333238; /* Dark gray for label */
 }
 
 /* CSS for comment textarea container */
 .comment-textarea-container {
     margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #dcdcde;
 }
 
 .comment-textarea-container textarea {
-    width: 100%;
+    width: calc(100% - 22px);
     height: 100px;
     padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
+    border: 1px solid #dcdcde;
+    border-radius: 4px;
     margin-bottom: 10px;
     resize: vertical;
 }
 
+/* Updated CSS for comment textarea container */
 .comment-textarea-container button {
-    background-color: #007bff;
-    color: #fff;
-    border: none;
-    border-radius: 5px;
+    background-color: #fff;
+    color: #333238;
+    border: 1px solid #bfbfc3; /* Updated border to match GitLab */
     padding: 10px 20px;
     cursor: pointer;
+    transition: background-color 0.3s ease;
+    border-radius: 4px;
 }
 
 .comment-textarea-container button:hover {
-    background-color: #0056b3;
+    background-color: rgba(0, 0, 0, 0.03); /* Light background on hover */
 }
 
-
-.gitlab-button-container {
-    display: flex;
-    align-items: center;
-}
-
-.gitlab-button {
-    display: inline-flex;
-    align-items: center;
-    vertical-align: middle;
-    padding: 5px;
-    background-color: #f0f0f0; /* Light Gray Background */
-    color: #171321; /* Text Color */
-    font-size: 16px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.3s ease; /* Smooth transition */
-}
-
-.gitlab-button:hover {
-    background-color: #e0e0e0; /* Light Gray Background on hover */
-}
-
-.gitlab-logo {
-    width: 24px;
-    height: 24px;
-    margin-right: 5px;
-    vertical-align: middle;
-}
-
-.overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    z-index: 1000;
-    display: none;
-    justify-content: center;
-    align-items: center;
-}
-
-.overlay-text {
-    color: white;
-    font-size: 20px;
-}
 
 /* Updated CSS for current user avatar */
 .current-user-avatar-container {
     display: flex;
-    justify-content: flex-start;
-    align-items: flex-start;
+    align-items: center;
     margin-bottom: 10px;
 }
 
 .current-user-avatar-container img {
-    width: 40px;
-    height: 40px;
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
     margin-right: 10px;
 }
+
+/* Updated CSS for GitLab-like buttons */
+.gl-button,
+.gl-button.btn-block {
+    border-width: 0;
+    padding: 10px 20px;
+    background-color: rgba(0, 0, 0, 0);
+    color: #333238;
+    box-shadow: inset 0 0 0 1px #bfbfc3;
+    justify-content: center;
+    align-items: center;
+    font-size: 0.875rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.gl-button:hover,
+.gl-button.btn-block:hover {
+    background-color: rgba(0, 0, 0, 0.03); /* Light background on hover */
+    box-shadow: inset 0 0 0 1px #bfbfc3, 0 2px 4px rgba(0, 0, 0, 0.1); /* Updated box-shadow on hover */
+}
+
+/* Updated CSS for tab links */
+.tab .tablinks {
+    background-color: #fff;
+    color: #333238;
+    border: 1px solid #bfbfc3;
+    padding: 10px 20px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    border-radius: 4px;
+}
+
+.tab .tablinks:hover {
+    background-color: rgba(0, 0, 0, 0.03); /* Light background on hover */
+}
+
+/* Updated CSS for "Add Comment" button */
+#addCommentButton {
+    background-color: #fff;
+    color: #333238;
+    border: 1px solid #bfbfc3;
+    padding: 10px 20px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    border-radius: 4px;
+}
+
+#addCommentButton:hover {
+    background-color: rgba(0, 0, 0, 0.03); /* Light background on hover */
+}
+
+/* Updated CSS for GitLab login button */
+.gitlab-button {
+    display: inline-flex !important;
+    align-items: center !important;
+    padding: 6px 10px;
+    background-color: #fff;
+    color: #333238;
+    border: 1px solid #bfbfc3;
+    border-radius: 4px; /* Adjust border radius */
+    font-size: 0.875rem;
+    font-weight: 550;
+    cursor: pointer;
+    transition: background-color 100ms linear, border-color 100ms linear, color 100ms linear, box-shadow 100ms linear;
+}
+
+.gitlab-button img {
+    width: 24px;
+    height: 24px;
+    margin-right: 8px; /* Adjust margin for icon */
+}
+
+.gitlab-button .gl-button-text {
+    display: flex;
+    align-items: center;
+    gap: 8px; /* Spacing between icon and text */
+}
+
+.gitlab-button:hover {
+    background-color: rgba(0, 0, 0, 0.03); /* Light background on hover */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Add box-shadow on hover */
+}
+
 
