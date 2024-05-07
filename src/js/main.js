@@ -1,5 +1,5 @@
-import { Marked } from "marked";
-import { markedHighlight } from "marked-highlight";
+import {Marked} from "marked";
+import {markedHighlight} from "marked-highlight";
 import hljs from 'highlight.js';
 import SimpleMDE from "simplemde"
 
@@ -18,21 +18,28 @@ const marked = new Marked(
         langPrefix: 'hljs language-',
         highlight(code, lang, info) {
             const language = hljs.getLanguage(lang) ? lang : 'plaintext';
-            return hljs.highlight(code, { language }).value;
+            return hljs.highlight(code, {language}).value;
         }
     })
 );
 marked.setOptions({
-    highlight: function(code, lang) {
+    highlight: function (code, lang) {
         return hljs.highlight(lang, code).value;
     }
 });
 
 
+const IssueFetchStrategy = {
+    URL: 'url',
+    PAGE_TITLE: 'pageTitle',
+    ISSUE_ID: 'issueId'
+};
+
 // Default Configuration
 const gitlabClientId = 'b13dc0c7b49e390d25c1278061c48ca938c5f48b72a6ec8f6e5d87c9d0cafc19';
 const defaultRedirectUri = 'http://localhost:8080'; // Default redirect URI
 const projectName = 'antonbelev.gitlab.io'; // Configurable project name
+const issueMappingStrategy = IssueFetchStrategy.URL
 
 // User Configurable Options
 const GitLabIssuesConfig = {
@@ -53,18 +60,17 @@ function authenticateWithGitLab() {
 }
 
 // Function to handle GitLab redirect with code
-function handleGitLabRedirect() {
+async function handleGitLabRedirect() {
     const urlParams = new URLSearchParams(window.location.search);
     const code = urlParams.get('code');
 
     if (code) {
         // Request access token
-        requestAccessToken(code);
+        await requestAccessToken(code);
     }
 }
 
-// Function to request access token
-function requestAccessToken(code) {
+async function requestAccessToken(code) {
     const tokenUrl = 'https://gitlab.com/oauth/token';
     const params = {
         client_id: GitLabIssuesConfig.clientId,
@@ -73,33 +79,31 @@ function requestAccessToken(code) {
         redirect_uri: GitLabIssuesConfig.redirectUri
     };
 
-    fetch(tokenUrl, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(params)
-    })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Failed to get access token');
-            }
-            return response.json();
-        })
-        .then(data => {
-            const accessToken = data.access_token;
-            localStorage.setItem(GitLabIssuesConfig.localStorageKey, accessToken);
-            fetchProjectId(accessToken);
-        })
-        .catch(error => {
-            console.error('Error requesting access token:', error);
+    try {
+        const response = await fetch(tokenUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(params)
         });
+
+        if (!response.ok) {
+            throw new Error('Failed to get access token');
+        }
+
+        const data = await response.json();
+        const accessToken = data.access_token;
+        localStorage.setItem(GitLabIssuesConfig.localStorageKey, accessToken);
+        await fetchProjectId(accessToken);
+    } catch (error) {
+        console.error('Error requesting access token:', error);
+    }
 }
 
 // Function to fetch project ID based on project name
 async function fetchProjectId(accessToken) {
     try {
-        showLoadingOverlay(); // Show loading overlay
         const projectsUrl = `https://gitlab.com/api/v4/projects?search=${encodeURIComponent(projectName)}`;
         const response = await fetch(projectsUrl, {
             headers: {
@@ -123,18 +127,29 @@ async function fetchProjectId(accessToken) {
         }
 
         const projectId = project.id;
-        fetchGitLabIssues(projectId, accessToken);
+        await fetchIssuesByCriteria(projectId, accessToken, IssueFetchStrategy.ISSUE_ID);
     } catch (error) {
         console.error('Error fetching project ID:', error);
-    } finally {
-        hideLoadingOverlay(); // Hide loading overlay once done
     }
 }
 
 // Function to fetch GitLab issues using API token
-async function fetchGitLabIssues(projectId, accessToken) {
+async function fetchGitLabIssue(projectId, accessToken, fetchType, fetchParam) {
     try {
-        const response = await fetch(`https://gitlab.com/api/v4/projects/${projectId}/issues`, {
+        let apiUrl = `https://gitlab.com/api/v4/projects/${projectId}/issues`;
+
+        if (fetchType === 'url') {
+            // Fetch the issue which contains the current URL in the issue title
+            apiUrl += `?search=${encodeURIComponent(fetchParam)}`;
+        } else if (fetchType === 'pageTitle') {
+            // Fetch the issue which contains the current URL title in the issue title itself
+            apiUrl += `?search=${encodeURIComponent(fetchParam.split('/').pop())}`;
+        } else if (fetchType === 'issueId') {
+            // Fetch an issue by ID
+            apiUrl = `https://gitlab.com/api/v4/projects/${projectId}/issues/${fetchParam}`;
+        }
+
+        const response = await fetch(apiUrl, {
             headers: {
                 'Authorization': `Bearer ${accessToken}`
             }
@@ -145,13 +160,42 @@ async function fetchGitLabIssues(projectId, accessToken) {
                 // Clear token from local storage if it's expired
                 localStorage.removeItem(GitLabIssuesConfig.localStorageKey);
             }
-            throw new Error('Failed to fetch issues');
+            throw new Error('Failed to fetch issues' + ' status was ' + response.status);
         }
 
-        const data = await response.json();
-        displayIssues(data, accessToken);
+        const issueJson = await response.json();
+        console.log('fetchGitLabIssue data' + JSON.stringify(issueJson));
+        displayIssue(issueJson, accessToken);
     } catch (error) {
         console.error('Error fetching issues:', error);
+    }
+}
+
+async function fetchIssuesByCriteria(projectId, accessToken, fetchStrategy) {
+    try {
+        console.log("Show loading...")
+        showLoadingOverlay(); // Show loading overlay
+        const currentUrl = window.location.href;
+        const currentUrlTitle = document.title;
+
+        // Example issue ID
+        const issueId = '1';
+
+        // Fetch issues based on the specified strategy
+        if (fetchStrategy === IssueFetchStrategy.URL) {
+            await fetchGitLabIssue(projectId, accessToken, IssueFetchStrategy.URL, currentUrl);
+        } else if (fetchStrategy === IssueFetchStrategy.PAGE_TITLE) {
+            await fetchGitLabIssue(projectId, accessToken, IssueFetchStrategy.PAGE_TITLE, currentUrlTitle);
+        } else if (fetchStrategy === IssueFetchStrategy.ISSUE_ID) {
+            await fetchGitLabIssue(projectId, accessToken, IssueFetchStrategy.ISSUE_ID, issueId);
+        } else {
+            console.error('Invalid fetch strategy');
+        }
+    } catch (error) {
+        console.error('Error fetching issues:', error);
+    } finally {
+        console.log("Finally block executed - hideLoadingOverlay()");
+        hideLoadingOverlay();
     }
 }
 
@@ -181,54 +225,53 @@ async function fetchIssueDiscussions(issueIid, accessToken) {
 }
 
 // Function to display issues in the HTML
-async function displayIssues(issues, accessToken) {
+async function displayIssue(issue, accessToken) {
     const issuesContainer = document.getElementById('issuesContainer');
     issuesContainer.innerHTML = ''; // Clear previous content
 
-    if (!Array.isArray(issues)) {
+    if (!issue) {
         const errorMessage = document.createElement('div');
-        errorMessage.textContent = 'Failed to fetch issues';
+        errorMessage.textContent = 'Failed to fetch GitLab issue.';
         issuesContainer.appendChild(errorMessage);
         return;
     }
 
     // Create a label for number of comments
-    const totalComments = issues.reduce((acc, issue) => acc + issue.user_notes_count, 0);
+    const totalComments = issue.user_notes_count
     const commentsLabel = document.createElement('div');
     commentsLabel.classList.add('comments-label');
     commentsLabel.textContent = `${totalComments} Comments - powered by BeBlob`;
     issuesContainer.appendChild(commentsLabel);
 
-    for (const issue of issues) {
-        const issueElement = document.createElement('div');
-        issueElement.classList.add('issue');
+    const issueElement = document.createElement('div');
+    issueElement.classList.add('issue');
 
-        // Issue Description
-        const descriptionElement = document.createElement('div');
-        descriptionElement.classList.add('issue-description');
-        descriptionElement.textContent = issue.title;
-        issueElement.appendChild(descriptionElement);
+    // Issue Description
+    const descriptionElement = document.createElement('div');
+    descriptionElement.classList.add('issue-description');
+    descriptionElement.textContent = issue.title;
+    issueElement.appendChild(descriptionElement);
 
-        // Fetch and display discussions
-        const discussions = await fetchIssueDiscussions(issue.iid, accessToken);
-        if (Array.isArray(discussions)) {
-            discussions.forEach(discussion => {
-                discussion.notes.forEach((note, index) => {
-                    const isIndented = index > 0 && note.type === "DiscussionNote";
-                    const commentElement = createCommentElement(note, isIndented);
-                    issueElement.appendChild(commentElement);
-                });
+    // Fetch and display discussions
+    const discussions = await fetchIssueDiscussions(issue.iid, accessToken);
+    if (Array.isArray(discussions)) {
+        discussions.forEach(discussion => {
+            discussion.notes.forEach((note, index) => {
+                const isIndented = index > 0 && note.type === "DiscussionNote";
+                const commentElement = createCommentElement(note, isIndented);
+                issueElement.appendChild(commentElement);
             });
-        }
-        // If no discussions found
-        if (discussions.length === 0) {
-            const noCommentsElement = document.createElement('div');
-            noCommentsElement.textContent = 'No comments';
-            issueElement.appendChild(noCommentsElement);
-        }
-
-        issuesContainer.appendChild(issueElement);
+        });
     }
+    // If no discussions found
+    if (discussions.length === 0) {
+        const noCommentsElement = document.createElement('div');
+        noCommentsElement.textContent = 'No comments';
+        issueElement.appendChild(noCommentsElement);
+    }
+
+    issuesContainer.appendChild(issueElement);
+
 }
 
 // Function to create a comment element
@@ -339,7 +382,7 @@ function displayCurrentUserAvatar(user) {
 }
 
 // Check if there's a code in the URL (GitLab redirect)
-handleGitLabRedirect();
+await handleGitLabRedirect();
 
 // Function to show loading overlay
 function showLoadingOverlay() {
@@ -409,7 +452,7 @@ const storedToken = localStorage.getItem(GitLabIssuesConfig.localStorageKey);
 
 if (storedToken) {
     // If token exists, fetch project details
-    fetchProjectId(storedToken);
+    await fetchProjectId(storedToken);
 
     // Fetch current user details
     fetchCurrentUser(storedToken)
