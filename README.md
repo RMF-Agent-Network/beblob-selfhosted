@@ -16,7 +16,7 @@ TODO - add examples for usage
 TODO - add info on how/where to raise support issues for this tool. Most likely it will be through GitLab issues on the repo.
 
 ## Roadmap
-- [ ] GitLab API Authentication using [Authorization code with Proof Key for Code Exchange](https://docs.gitlab.com/ee/api/oauth2.html#authorization-code-with-proof-key-for-code-exchange-pkce)
+- [X] GitLab API Authentication using [Authorization code with Proof Key for Code Exchange](https://docs.gitlab.com/ee/api/oauth2.html#authorization-code-with-proof-key-for-code-exchange-pkce)
  Create an Issue related to a blog post
 - [ ] Ability to add comments to a blog post
 - [ ] Add styling

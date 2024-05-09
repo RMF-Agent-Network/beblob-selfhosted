@@ -40,6 +40,8 @@ const gitlabClientId = 'b13dc0c7b49e390d25c1278061c48ca938c5f48b72a6ec8f6e5d87c9
 const defaultRedirectUri = 'http://localhost:8080'; // Default redirect URI
 const projectName = 'antonbelev.gitlab.io'; // Configurable project name
 const issueMappingStrategy = IssueFetchStrategy.URL
+let projectId = null;
+let currentIssueId = null;
 
 // User Configurable Options
 const GitLabIssuesConfig = {
@@ -126,8 +128,8 @@ async function fetchProjectId(accessToken) {
             throw new Error(`Project "${projectName}" not found`);
         }
 
-        const projectId = project.id;
-        await fetchIssuesByCriteria(projectId, accessToken, IssueFetchStrategy.ISSUE_ID);
+        window.projectId = project.id;
+        await fetchIssuesByCriteria(accessToken, IssueFetchStrategy.ISSUE_ID);
     } catch (error) {
         console.error('Error fetching project ID:', error);
     }
@@ -164,14 +166,15 @@ async function fetchGitLabIssue(projectId, accessToken, fetchType, fetchParam) {
         }
 
         const issueJson = await response.json();
+        window.currentIssueId = issueJson.iid;
         console.log('fetchGitLabIssue data' + JSON.stringify(issueJson));
-        displayIssue(issueJson, accessToken);
+        await displayIssue(issueJson, accessToken);
     } catch (error) {
         console.error('Error fetching issues:', error);
     }
 }
 
-async function fetchIssuesByCriteria(projectId, accessToken, fetchStrategy) {
+async function fetchIssuesByCriteria(accessToken, fetchStrategy) {
     try {
         console.log("Show loading...")
         showLoadingOverlay(); // Show loading overlay
@@ -183,11 +186,11 @@ async function fetchIssuesByCriteria(projectId, accessToken, fetchStrategy) {
 
         // Fetch issues based on the specified strategy
         if (fetchStrategy === IssueFetchStrategy.URL) {
-            await fetchGitLabIssue(projectId, accessToken, IssueFetchStrategy.URL, currentUrl);
+            await fetchGitLabIssue(window.projectId, accessToken, IssueFetchStrategy.URL, currentUrl);
         } else if (fetchStrategy === IssueFetchStrategy.PAGE_TITLE) {
-            await fetchGitLabIssue(projectId, accessToken, IssueFetchStrategy.PAGE_TITLE, currentUrlTitle);
+            await fetchGitLabIssue(window.projectId, accessToken, IssueFetchStrategy.PAGE_TITLE, currentUrlTitle);
         } else if (fetchStrategy === IssueFetchStrategy.ISSUE_ID) {
-            await fetchGitLabIssue(projectId, accessToken, IssueFetchStrategy.ISSUE_ID, issueId);
+            await fetchGitLabIssue(window.projectId, accessToken, IssueFetchStrategy.ISSUE_ID, issueId);
         } else {
             console.error('Invalid fetch strategy');
         }
@@ -427,12 +430,47 @@ function updatePreview() {
     previewContent.innerHTML = marked.parse(markdownContent);
 }
 
-// Event listener for clicking on the "Add Comment" button
-document.getElementById("addCommentButton").addEventListener("click", () => {
+async function addCommentToIssue(accessToken, commentBody) {
+    try {
+        const apiUrl = `https://gitlab.com/api/v4/projects/${window.projectId}/issues/${window.currentIssueId}/notes`;
+        const response = await fetch(apiUrl, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${accessToken}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ body: commentBody })
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to add comment to issue');
+        }
+
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Error adding comment to issue:', error);
+    }
+}
+
+document.getElementById("addCommentButton").addEventListener("click", async () => {
     const newComment = simplemde.value();
-    alert("New comment: \n " + newComment);
-    // Perform action to add comment here, for example:
-    // addComment(newComment);
+    const storedToken = localStorage.getItem(GitLabIssuesConfig.localStorageKey);
+
+    if (!storedToken) {
+        console.error('Access token not found');
+        return;
+    }
+
+    if (!window.projectId || !window.currentIssueId) {
+        console.error('Project ID or Issue ID not found');
+        return;
+    }
+
+    await addCommentToIssue(storedToken, newComment);
+    // clear textarea
+    simplemde.value("");
+    await fetchIssuesByCriteria(storedToken, IssueFetchStrategy.ISSUE_ID);
 });
 
 // Event listener for tab clicks
