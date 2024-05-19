@@ -61,6 +61,18 @@ function authenticateWithGitLab() {
     window.location.href = oauthUrl;
 }
 
+// Function to show authentication button
+function showAuthButton() {
+    const authButton = document.getElementById('authButton');
+    authButton.style.display = 'block';
+}
+
+// Function to hide authentication button
+function hideAuthButton() {
+    const authButton = document.getElementById('authButton');
+    authButton.style.display = 'none';
+}
+
 // Function to handle GitLab redirect with code
 async function handleGitLabRedirect() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -97,6 +109,7 @@ async function requestAccessToken(code) {
         const data = await response.json();
         const accessToken = data.access_token;
         localStorage.setItem(GitLabIssuesConfig.localStorageKey, accessToken);
+        hideAuthButton();
         await fetchProjectId(accessToken);
     } catch (error) {
         console.error('Error requesting access token:', error);
@@ -117,6 +130,7 @@ async function fetchProjectId(accessToken) {
             if (response.status === 401) {
                 // Clear token from local storage if it's expired
                 localStorage.removeItem(GitLabIssuesConfig.localStorageKey);
+                showAuthButton();
             }
             throw new Error('Failed to fetch projects');
         }
