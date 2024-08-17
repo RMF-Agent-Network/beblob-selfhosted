@@ -1,11 +1,9 @@
-# pubic-comments-widget
-
-## Name
-TODO - choose name, right now I'm going with a dull public-comments-widget
+# BeBlob
 
 ## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
+BeBlob is an open-source library that enables you to add a comment section to your web pages hosted on GitLab. The primary use case is to integrate a comment section into your Hexo or Cactus blogs hosted on GitLab Pages.
 
+BeBlob maps your page URL to a GitLab issue within a configurable repository, enabling authenticated GitLab users to add comments and view others' comments.
 ## Installation
 TODO - local development guide
 
@@ -13,7 +11,7 @@ TODO - local development guide
 TODO - add examples for usage
 
 ## Support
-TODO - add info on how/where to raise support issues for this tool. Most likely it will be through GitLab issues on the repo.
+If you found a bug or have an idea for new feature - feel free to raise that as an issue [here](https://gitlab.com/antonbelev/beblob/-/issues) and add as much detail as possible.
 
 ## Roadmap
 - [X] GitLab API Authentication using [Authorization code with Proof Key for Code Exchange](https://docs.gitlab.com/ee/api/oauth2.html#authorization-code-with-proof-key-for-code-exchange-pkce)
@@ -25,6 +23,8 @@ TODO - add info on how/where to raise support issues for this tool. Most likely 
 - [ ] Write Contributing guide
 - [ ] Update Docs
 - [ ] Investigate Hexo Cactus integration - currently Cactus only supports Disqus and Utterances [see here](https://github.com/probberechts/hexo-theme-cactus?tab=readme-ov-file#comments)
+- [ ] Add examples of usage
+- [ ] Add demo from my website
 
 ## Contributing
 Contributors will be welcome after the initial v1.0 has been completed.
