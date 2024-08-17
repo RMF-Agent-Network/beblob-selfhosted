@@ -18,7 +18,7 @@ TODO - add info on how/where to raise support issues for this tool. Most likely 
 ## Roadmap
 - [X] GitLab API Authentication using [Authorization code with Proof Key for Code Exchange](https://docs.gitlab.com/ee/api/oauth2.html#authorization-code-with-proof-key-for-code-exchange-pkce)
  Create an Issue related to a blog post
-- [ ] Ability to add comments to a blog post
+- [X] Ability to add comments to a blog post
 - [ ] Add styling
 - [ ] Support multiple color schemes from [Cactus](https://probberechts.github.io/hexo-theme-cactus/)
 - [ ] Add linting
@@ -31,6 +31,11 @@ Contributors will be welcome after the initial v1.0 has been completed.
 
 ## Authors and acknowledgment
 Anton Belev @ [https://belev.me](https://belev.me)
+
+## Developer docs
+
+### Publishing new version to npm
+
 
 ## License
 MIT

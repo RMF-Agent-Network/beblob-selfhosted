@@ -63,24 +63,19 @@ function authenticateWithGitLab() {
 
 // Function to show authentication button
 function showAuthButton() {
-    const authButton = document.getElementById('authButton');
-    authButton.style.display = 'block';
+    const authButtonContainer = document.querySelector('.gitlab-button-container');
+    console.log("showing auth button container");
+    if (authButtonContainer) {
+        authButtonContainer.style.setProperty('display', 'block', 'important');
+    }
 }
 
 // Function to hide authentication button
 function hideAuthButton() {
-    const authButton = document.getElementById('authButton');
-    authButton.style.display = 'none';
-}
-
-// Function to handle GitLab redirect with code
-async function handleGitLabRedirect() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const code = urlParams.get('code');
-
-    if (code) {
-        // Request access token
-        await requestAccessToken(code);
+    const authButtonContainer = document.querySelector('.gitlab-button-container');
+    console.log("hiding auth button container");
+    if (authButtonContainer) {
+        authButtonContainer.style.setProperty('display', 'none', 'important');
     }
 }
 
@@ -503,7 +498,8 @@ authButton.addEventListener('click', authenticateWithGitLab);
 const storedToken = localStorage.getItem(GitLabIssuesConfig.localStorageKey);
 
 if (storedToken) {
-    // If token exists, fetch project details
+    // If token exists, hide the auth button and fetch project details
+    hideAuthButton();
     await fetchProjectId(storedToken);
 
     // Fetch current user details
@@ -516,4 +512,30 @@ if (storedToken) {
         .catch(error => {
             console.error('Error fetching current user:', error);
         });
+} else {
+    // Show the auth button if no token is present
+    showAuthButton();
 }
+
+
+// Function to handle GitLab redirect with code
+async function handleGitLabRedirect() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const code = urlParams.get('code');
+
+    if (code) {
+        // Request access token
+        await requestAccessToken(code);
+    }
+}
+
+// Function to check if the URL contains an OAuth code and handle it
+async function checkForOAuthRedirect() {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('code')) {
+        await handleGitLabRedirect();
+    }
+}
+
+// Only call this function if the URL contains the `code` parameter
+await checkForOAuthRedirect();

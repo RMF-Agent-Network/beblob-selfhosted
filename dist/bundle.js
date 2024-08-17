@@ -158,7 +158,7 @@ eval("var __dirname = \"/\";\n/* globals chrome: false */\n/* globals __dirname:
 /***/ ((module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
-eval("__webpack_require__.a(module, async (__webpack_handle_async_dependencies__, __webpack_async_result__) => { try {\n__webpack_require__.r(__webpack_exports__);\n/* harmony import */ var marked__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! marked */ \"./node_modules/marked/lib/marked.esm.js\");\n/* harmony import */ var marked_highlight__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! marked-highlight */ \"./node_modules/marked-highlight/src/index.js\");\n/* harmony import */ var highlight_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! highlight.js */ \"./node_modules/highlight.js/es/index.js\");\n/* harmony import */ var simplemde__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! simplemde */ \"./node_modules/simplemde/src/js/simplemde.js\");\n/* harmony import */ var simplemde__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(simplemde__WEBPACK_IMPORTED_MODULE_3__);\n\r\n\r\n\r\n\r\n\r\n// Initialize SimpleMDE\r\nconst simplemde = new (simplemde__WEBPACK_IMPORTED_MODULE_3___default())({\r\n    element: document.getElementById(\"newComment\"), // ID of your textarea\r\n    hideIcons: [\"preview\", \"side-by-side\"],\r\n    renderingConfig: {\r\n        codeSyntaxHighlighting: true,\r\n    },\r\n    tabSize: 4, // Set tab size to 4 spaces\r\n});\r\n\r\nconst marked = new marked__WEBPACK_IMPORTED_MODULE_0__.Marked(\r\n    (0,marked_highlight__WEBPACK_IMPORTED_MODULE_1__.markedHighlight)({\r\n        langPrefix: 'hljs language-',\r\n        highlight(code, lang, info) {\r\n            const language = highlight_js__WEBPACK_IMPORTED_MODULE_2__[\"default\"].getLanguage(lang) ? lang : 'plaintext';\r\n            return highlight_js__WEBPACK_IMPORTED_MODULE_2__[\"default\"].highlight(code, {language}).value;\r\n        }\r\n    })\r\n);\r\nmarked.setOptions({\r\n    highlight: function (code, lang) {\r\n        return highlight_js__WEBPACK_IMPORTED_MODULE_2__[\"default\"].highlight(lang, code).value;\r\n    }\r\n});\r\n\r\n\r\nconst IssueFetchStrategy = {\r\n    URL: 'url',\r\n    PAGE_TITLE: 'pageTitle',\r\n    ISSUE_ID: 'issueId'\r\n};\r\n\r\n// Default Configuration\r\nconst gitlabClientId = 'b13dc0c7b49e390d25c1278061c48ca938c5f48b72a6ec8f6e5d87c9d0cafc19';\r\nconst defaultRedirectUri = 'http://localhost:8080'; // Default redirect URI\r\nconst projectName = 'antonbelev.gitlab.io'; // Configurable project name\r\nconst issueMappingStrategy = IssueFetchStrategy.URL\r\nlet projectId = null;\r\nlet currentIssueId = null;\r\n\r\n// User Configurable Options\r\nconst GitLabIssuesConfig = {\r\n    clientId: gitlabClientId,\r\n    redirectUri: defaultRedirectUri,\r\n    localStorageKey: 'gitlabAccessToken'\r\n};\r\n\r\n// Override default config with user config (if provided)\r\nif (window.GitLabIssuesConfig) {\r\n    Object.assign(GitLabIssuesConfig, window.GitLabIssuesConfig);\r\n}\r\n\r\n// Function to handle GitLab authentication\r\nfunction authenticateWithGitLab() {\r\n    const oauthUrl = `https://gitlab.com/oauth/authorize?client_id=${GitLabIssuesConfig.clientId}&redirect_uri=${GitLabIssuesConfig.redirectUri}&response_type=code`;\r\n    window.location.href = oauthUrl;\r\n}\r\n\r\n// Function to show authentication button\r\nfunction showAuthButton() {\r\n    const authButton = document.getElementById('authButton');\r\n    authButton.style.display = 'block';\r\n}\r\n\r\n// Function to hide authentication button\r\nfunction hideAuthButton() {\r\n    const authButton = document.getElementById('authButton');\r\n    authButton.style.display = 'none';\r\n}\r\n\r\n// Function to handle GitLab redirect with code\r\nasync function handleGitLabRedirect() {\r\n    const urlParams = new URLSearchParams(window.location.search);\r\n    const code = urlParams.get('code');\r\n\r\n    if (code) {\r\n        // Request access token\r\n        await requestAccessToken(code);\r\n    }\r\n}\r\n\r\nasync function requestAccessToken(code) {\r\n    const tokenUrl = 'https://gitlab.com/oauth/token';\r\n    const params = {\r\n        client_id: GitLabIssuesConfig.clientId,\r\n        code: code,\r\n        grant_type: 'authorization_code',\r\n        redirect_uri: GitLabIssuesConfig.redirectUri\r\n    };\r\n\r\n    try {\r\n        const response = await fetch(tokenUrl, {\r\n            method: 'POST',\r\n            headers: {\r\n                'Content-Type': 'application/json'\r\n            },\r\n            body: JSON.stringify(params)\r\n        });\r\n\r\n        if (!response.ok) {\r\n            throw new Error('Failed to get access token');\r\n        }\r\n\r\n        const data = await response.json();\r\n        const accessToken = data.access_token;\r\n        localStorage.setItem(GitLabIssuesConfig.localStorageKey, accessToken);\r\n        hideAuthButton();\r\n        await fetchProjectId(accessToken);\r\n    } catch (error) {\r\n        console.error('Error requesting access token:', error);\r\n    }\r\n}\r\n\r\n// Function to fetch project ID based on project name\r\nasync function fetchProjectId(accessToken) {\r\n    try {\r\n        const projectsUrl = `https://gitlab.com/api/v4/projects?search=${encodeURIComponent(projectName)}`;\r\n        const response = await fetch(projectsUrl, {\r\n            headers: {\r\n                'Authorization': `Bearer ${accessToken}`\r\n            }\r\n        });\r\n\r\n        if (!response.ok) {\r\n            if (response.status === 401) {\r\n                // Clear token from local storage if it's expired\r\n                localStorage.removeItem(GitLabIssuesConfig.localStorageKey);\r\n                showAuthButton();\r\n            }\r\n            throw new Error('Failed to fetch projects');\r\n        }\r\n\r\n        const projects = await response.json();\r\n        const project = projects.find(p => p.name === projectName);\r\n\r\n        if (!project) {\r\n            throw new Error(`Project \"${projectName}\" not found`);\r\n        }\r\n\r\n        window.projectId = project.id;\r\n        await fetchIssuesByCriteria(accessToken, IssueFetchStrategy.ISSUE_ID);\r\n    } catch (error) {\r\n        console.error('Error fetching project ID:', error);\r\n    }\r\n}\r\n\r\n// Function to fetch GitLab issues using API token\r\nasync function fetchGitLabIssue(projectId, accessToken, fetchType, fetchParam) {\r\n    try {\r\n        let apiUrl = `https://gitlab.com/api/v4/projects/${projectId}/issues`;\r\n\r\n        if (fetchType === 'url') {\r\n            // Fetch the issue which contains the current URL in the issue title\r\n            apiUrl += `?search=${encodeURIComponent(fetchParam)}`;\r\n        } else if (fetchType === 'pageTitle') {\r\n            // Fetch the issue which contains the current URL title in the issue title itself\r\n            apiUrl += `?search=${encodeURIComponent(fetchParam.split('/').pop())}`;\r\n        } else if (fetchType === 'issueId') {\r\n            // Fetch an issue by ID\r\n            apiUrl = `https://gitlab.com/api/v4/projects/${projectId}/issues/${fetchParam}`;\r\n        }\r\n\r\n        const response = await fetch(apiUrl, {\r\n            headers: {\r\n                'Authorization': `Bearer ${accessToken}`\r\n            }\r\n        });\r\n\r\n        if (!response.ok) {\r\n            if (response.status === 401) {\r\n                // Clear token from local storage if it's expired\r\n                localStorage.removeItem(GitLabIssuesConfig.localStorageKey);\r\n            }\r\n            throw new Error('Failed to fetch issues' + ' status was ' + response.status);\r\n        }\r\n\r\n        const issueJson = await response.json();\r\n        window.currentIssueId = issueJson.iid;\r\n        console.log('fetchGitLabIssue data' + JSON.stringify(issueJson));\r\n        await displayIssue(issueJson, accessToken);\r\n    } catch (error) {\r\n        console.error('Error fetching issues:', error);\r\n    }\r\n}\r\n\r\nasync function fetchIssuesByCriteria(accessToken, fetchStrategy) {\r\n    try {\r\n        console.log(\"Show loading...\")\r\n        showLoadingOverlay(); // Show loading overlay\r\n        const currentUrl = window.location.href;\r\n        const currentUrlTitle = document.title;\r\n\r\n        // Example issue ID\r\n        const issueId = '1';\r\n\r\n        // Fetch issues based on the specified strategy\r\n        if (fetchStrategy === IssueFetchStrategy.URL) {\r\n            await fetchGitLabIssue(window.projectId, accessToken, IssueFetchStrategy.URL, currentUrl);\r\n        } else if (fetchStrategy === IssueFetchStrategy.PAGE_TITLE) {\r\n            await fetchGitLabIssue(window.projectId, accessToken, IssueFetchStrategy.PAGE_TITLE, currentUrlTitle);\r\n        } else if (fetchStrategy === IssueFetchStrategy.ISSUE_ID) {\r\n            await fetchGitLabIssue(window.projectId, accessToken, IssueFetchStrategy.ISSUE_ID, issueId);\r\n        } else {\r\n            console.error('Invalid fetch strategy');\r\n        }\r\n    } catch (error) {\r\n        console.error('Error fetching issues:', error);\r\n    } finally {\r\n        console.log(\"Finally block executed - hideLoadingOverlay()\");\r\n        hideLoadingOverlay();\r\n    }\r\n}\r\n\r\n// Function to fetch discussions for an issue\r\nasync function fetchIssueDiscussions(issueIid, accessToken) {\r\n    try {\r\n        const response = await fetch(`https://gitlab.com/api/v4/projects/55603648/issues/${issueIid}/discussions`, {\r\n            headers: {\r\n                'Authorization': `Bearer ${accessToken}`\r\n            }\r\n        });\r\n\r\n        if (!response.ok) {\r\n            if (response.status === 401) {\r\n                // Clear token from local storage if it's expired\r\n                localStorage.removeItem(GitLabIssuesConfig.localStorageKey);\r\n            }\r\n            throw new Error('Failed to fetch discussions for issue');\r\n        }\r\n\r\n        const data = await response.json();\r\n        return data;\r\n    } catch (error) {\r\n        console.error('Error fetching discussions for issue:', error);\r\n        return [];\r\n    }\r\n}\r\n\r\n// Function to display issues in the HTML\r\nasync function displayIssue(issue, accessToken) {\r\n    const issuesContainer = document.getElementById('issuesContainer');\r\n    issuesContainer.innerHTML = ''; // Clear previous content\r\n\r\n    if (!issue) {\r\n        const errorMessage = document.createElement('div');\r\n        errorMessage.textContent = 'Failed to fetch GitLab issue.';\r\n        issuesContainer.appendChild(errorMessage);\r\n        return;\r\n    }\r\n\r\n    // Create a label for number of comments\r\n    const totalComments = issue.user_notes_count\r\n    const commentsLabel = document.createElement('div');\r\n    commentsLabel.classList.add('comments-label');\r\n    commentsLabel.textContent = `${totalComments} Comments - powered by BeBlob`;\r\n    issuesContainer.appendChild(commentsLabel);\r\n\r\n    const issueElement = document.createElement('div');\r\n    issueElement.classList.add('issue');\r\n\r\n    // Issue Description\r\n    const descriptionElement = document.createElement('div');\r\n    descriptionElement.classList.add('issue-description');\r\n    descriptionElement.textContent = issue.title;\r\n    issueElement.appendChild(descriptionElement);\r\n\r\n    // Fetch and display discussions\r\n    const discussions = await fetchIssueDiscussions(issue.iid, accessToken);\r\n    if (Array.isArray(discussions)) {\r\n        discussions.forEach(discussion => {\r\n            discussion.notes.forEach((note, index) => {\r\n                const isIndented = index > 0 && note.type === \"DiscussionNote\";\r\n                const commentElement = createCommentElement(note, isIndented);\r\n                issueElement.appendChild(commentElement);\r\n            });\r\n        });\r\n    }\r\n    // If no discussions found\r\n    if (discussions.length === 0) {\r\n        const noCommentsElement = document.createElement('div');\r\n        noCommentsElement.textContent = 'No comments';\r\n        issueElement.appendChild(noCommentsElement);\r\n    }\r\n\r\n    issuesContainer.appendChild(issueElement);\r\n\r\n}\r\n\r\n// Function to create a comment element\r\nfunction createCommentElement(comment, isIndented) {\r\n    const commentElement = document.createElement('div');\r\n    commentElement.classList.add('comment');\r\n\r\n    if (isIndented) {\r\n        // If it's a threaded comment (not the top-level), indent\r\n        commentElement.style.marginLeft = '30px';\r\n    }\r\n\r\n    // Comment Header (Author and Timestamp)\r\n    const headerElement = document.createElement('div');\r\n    headerElement.classList.add('comment-header');\r\n\r\n    // Author Avatar\r\n    const authorAvatar = document.createElement('img');\r\n    authorAvatar.src = comment.author.avatar_url;\r\n    authorAvatar.alt = comment.author.name;\r\n    headerElement.appendChild(authorAvatar);\r\n\r\n    // Author Info (Name and Timestamp)\r\n    const authorInfo = document.createElement('div');\r\n    authorInfo.classList.add('author-info');\r\n\r\n    // Author Name with Link to Profile\r\n    const authorLink = document.createElement('a');\r\n    authorLink.href = comment.author.web_url;\r\n    authorLink.textContent = comment.author.name;\r\n    authorLink.classList.add('author-name');\r\n    authorInfo.appendChild(authorLink);\r\n\r\n    // Commented on Text\r\n    const commentedOn = document.createElement('span');\r\n    commentedOn.classList.add('commented-on');\r\n    commentedOn.textContent = ' commented on ';\r\n    authorInfo.appendChild(commentedOn);\r\n\r\n    // Comment Timestamp\r\n    const timestamp = document.createElement('span');\r\n    timestamp.classList.add('comment-timestamp');\r\n    const commentDate = new Date(comment.created_at);\r\n    const formattedDate = `${commentDate.toLocaleDateString('en-US', {\r\n        year: 'numeric',\r\n        month: 'short',\r\n        day: 'numeric'\r\n    })}`;\r\n    timestamp.textContent = formattedDate;\r\n    authorInfo.appendChild(timestamp);\r\n\r\n    headerElement.appendChild(authorInfo);\r\n    commentElement.appendChild(headerElement);\r\n\r\n    // Comment Body (Markdown)\r\n    const bodyElement = document.createElement('div');\r\n    bodyElement.classList.add('comment-body');\r\n    bodyElement.innerHTML = marked.parse(comment.body);\r\n    commentElement.appendChild(bodyElement);\r\n\r\n    return commentElement;\r\n}\r\n\r\n// Function to fetch current user details from GitLab\r\nasync function fetchCurrentUser(accessToken) {\r\n    try {\r\n        const currentUserUrl = 'https://gitlab.com/api/v4/user';\r\n        const response = await fetch(currentUserUrl, {\r\n            headers: {\r\n                'Authorization': `Bearer ${accessToken}`\r\n            }\r\n        });\r\n\r\n        if (!response.ok) {\r\n            if (response.status === 401) {\r\n                // Clear token from local storage if it's expired\r\n                localStorage.removeItem(GitLabIssuesConfig.localStorageKey);\r\n            }\r\n            throw new Error('Failed to fetch current user');\r\n        }\r\n\r\n        const userData = await response.json();\r\n        return userData;\r\n    } catch (error) {\r\n        console.error('Error fetching current user:', error);\r\n        return null;\r\n    }\r\n}\r\n\r\n// Function to display current user avatar with bubble\r\nfunction displayCurrentUserAvatar(user) {\r\n    const currentUserAvatarContainer = document.createElement('div');\r\n    currentUserAvatarContainer.classList.add('current-user-avatar-container');\r\n\r\n    // Avatar Image\r\n    const avatarImg = document.createElement('img');\r\n    avatarImg.src = user.avatar_url;\r\n    avatarImg.alt = user.name;\r\n    currentUserAvatarContainer.appendChild(avatarImg);\r\n\r\n    // Bubble Element\r\n    const bubbleElement = document.createElement('div');\r\n    bubbleElement.classList.add('bubble');\r\n    currentUserAvatarContainer.appendChild(bubbleElement);\r\n\r\n    const textareaContainer = document.querySelector('.comment-textarea-container');\r\n    textareaContainer.insertBefore(currentUserAvatarContainer, textareaContainer.firstChild);\r\n}\r\n\r\n// Check if there's a code in the URL (GitLab redirect)\r\nawait handleGitLabRedirect();\r\n\r\n// Function to show loading overlay\r\nfunction showLoadingOverlay() {\r\n    const overlay = document.getElementById('overlay');\r\n    overlay.style.display = 'flex';\r\n}\r\n\r\n// Function to hide loading overlay\r\nfunction hideLoadingOverlay() {\r\n    const overlay = document.getElementById('overlay');\r\n    overlay.style.display = 'none';\r\n}\r\n\r\n// Function to switch between tabs\r\nfunction openTab(tabName) {\r\n    // Get all elements with class=\"tabcontent\" and hide them\r\n    const tabcontent = document.getElementsByClassName(\"tabcontent\");\r\n    for (let i = 0; i < tabcontent.length; i++) {\r\n        tabcontent[i].style.display = \"none\";\r\n    }\r\n\r\n    // Get all elements with class=\"tablinks\" and remove the class \"active\"\r\n    const tablinks = document.getElementsByClassName(\"tablinks\");\r\n    for (let i = 0; i < tablinks.length; i++) {\r\n        tablinks[i].classList.remove(\"active\");\r\n    }\r\n\r\n    // Show the current tab, and add an \"active\" class to the button that corresponds to the tab\r\n    document.getElementById(tabName).style.display = \"block\";\r\n    document.querySelector(`button[data-tab=\"${tabName}\"]`).classList.add(\"active\");\r\n\r\n    // If switching to Preview tab, update the preview\r\n    if (tabName === 'Preview') {\r\n        updatePreview();\r\n    }\r\n}\r\n\r\n// Function to update the preview with Markdown content\r\nfunction updatePreview() {\r\n    const markdownContent = simplemde.value();\r\n    const previewContent = document.getElementById(\"previewContent\");\r\n    previewContent.innerHTML = marked.parse(markdownContent);\r\n}\r\n\r\nasync function addCommentToIssue(accessToken, commentBody) {\r\n    try {\r\n        const apiUrl = `https://gitlab.com/api/v4/projects/${window.projectId}/issues/${window.currentIssueId}/notes`;\r\n        const response = await fetch(apiUrl, {\r\n            method: 'POST',\r\n            headers: {\r\n                'Authorization': `Bearer ${accessToken}`,\r\n                'Content-Type': 'application/json'\r\n            },\r\n            body: JSON.stringify({ body: commentBody })\r\n        });\r\n\r\n        if (!response.ok) {\r\n            throw new Error('Failed to add comment to issue');\r\n        }\r\n\r\n        const data = await response.json();\r\n        return data;\r\n    } catch (error) {\r\n        console.error('Error adding comment to issue:', error);\r\n    }\r\n}\r\n\r\ndocument.getElementById(\"addCommentButton\").addEventListener(\"click\", async () => {\r\n    const newComment = simplemde.value();\r\n    const storedToken = localStorage.getItem(GitLabIssuesConfig.localStorageKey);\r\n\r\n    if (!storedToken) {\r\n        console.error('Access token not found');\r\n        return;\r\n    }\r\n\r\n    if (!window.projectId || !window.currentIssueId) {\r\n        console.error('Project ID or Issue ID not found');\r\n        return;\r\n    }\r\n\r\n    await addCommentToIssue(storedToken, newComment);\r\n    // clear textarea\r\n    simplemde.value(\"\");\r\n    await fetchIssuesByCriteria(storedToken, IssueFetchStrategy.ISSUE_ID);\r\n});\r\n\r\n// Event listener for tab clicks\r\ndocument.querySelectorAll('.tablinks').forEach(tab => {\r\n    tab.addEventListener('click', () => {\r\n        const tabName = tab.getAttribute('data-tab');\r\n        openTab(tabName);\r\n    });\r\n});\r\n\r\nconst authButton = document.getElementById('authButton');\r\nauthButton.style.display = 'block';\r\nauthButton.addEventListener('click', authenticateWithGitLab);\r\n\r\n// Check if we have a GitLab access token in localStorage\r\nconst storedToken = localStorage.getItem(GitLabIssuesConfig.localStorageKey);\r\n\r\nif (storedToken) {\r\n    // If token exists, fetch project details\r\n    await fetchProjectId(storedToken);\r\n\r\n    // Fetch current user details\r\n    fetchCurrentUser(storedToken)\r\n        .then(user => {\r\n            if (user) {\r\n                displayCurrentUserAvatar(user);\r\n            }\r\n        })\r\n        .catch(error => {\r\n            console.error('Error fetching current user:', error);\r\n        });\r\n}\r\n\n__webpack_async_result__();\n} catch(e) { __webpack_async_result__(e); } }, 1);\n\n//# sourceURL=webpack://beblob/./src/js/main.js?");
+eval("__webpack_require__.a(module, async (__webpack_handle_async_dependencies__, __webpack_async_result__) => { try {\n__webpack_require__.r(__webpack_exports__);\n/* harmony import */ var marked__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! marked */ \"./node_modules/marked/lib/marked.esm.js\");\n/* harmony import */ var marked_highlight__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! marked-highlight */ \"./node_modules/marked-highlight/src/index.js\");\n/* harmony import */ var highlight_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! highlight.js */ \"./node_modules/highlight.js/es/index.js\");\n/* harmony import */ var simplemde__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! simplemde */ \"./node_modules/simplemde/src/js/simplemde.js\");\n/* harmony import */ var simplemde__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(simplemde__WEBPACK_IMPORTED_MODULE_3__);\n\r\n\r\n\r\n\r\n\r\n// Initialize SimpleMDE\r\nconst simplemde = new (simplemde__WEBPACK_IMPORTED_MODULE_3___default())({\r\n    element: document.getElementById(\"newComment\"), // ID of your textarea\r\n    hideIcons: [\"preview\", \"side-by-side\"],\r\n    renderingConfig: {\r\n        codeSyntaxHighlighting: true,\r\n    },\r\n    tabSize: 4, // Set tab size to 4 spaces\r\n});\r\n\r\nconst marked = new marked__WEBPACK_IMPORTED_MODULE_0__.Marked(\r\n    (0,marked_highlight__WEBPACK_IMPORTED_MODULE_1__.markedHighlight)({\r\n        langPrefix: 'hljs language-',\r\n        highlight(code, lang, info) {\r\n            const language = highlight_js__WEBPACK_IMPORTED_MODULE_2__[\"default\"].getLanguage(lang) ? lang : 'plaintext';\r\n            return highlight_js__WEBPACK_IMPORTED_MODULE_2__[\"default\"].highlight(code, {language}).value;\r\n        }\r\n    })\r\n);\r\nmarked.setOptions({\r\n    highlight: function (code, lang) {\r\n        return highlight_js__WEBPACK_IMPORTED_MODULE_2__[\"default\"].highlight(lang, code).value;\r\n    }\r\n});\r\n\r\n\r\nconst IssueFetchStrategy = {\r\n    URL: 'url',\r\n    PAGE_TITLE: 'pageTitle',\r\n    ISSUE_ID: 'issueId'\r\n};\r\n\r\n// Default Configuration\r\nconst gitlabClientId = 'b13dc0c7b49e390d25c1278061c48ca938c5f48b72a6ec8f6e5d87c9d0cafc19';\r\nconst defaultRedirectUri = 'http://localhost:8080'; // Default redirect URI\r\nconst projectName = 'antonbelev.gitlab.io'; // Configurable project name\r\nconst issueMappingStrategy = IssueFetchStrategy.URL\r\nlet projectId = null;\r\nlet currentIssueId = null;\r\n\r\n// User Configurable Options\r\nconst GitLabIssuesConfig = {\r\n    clientId: gitlabClientId,\r\n    redirectUri: defaultRedirectUri,\r\n    localStorageKey: 'gitlabAccessToken'\r\n};\r\n\r\n// Override default config with user config (if provided)\r\nif (window.GitLabIssuesConfig) {\r\n    Object.assign(GitLabIssuesConfig, window.GitLabIssuesConfig);\r\n}\r\n\r\n// Function to handle GitLab authentication\r\nfunction authenticateWithGitLab() {\r\n    const oauthUrl = `https://gitlab.com/oauth/authorize?client_id=${GitLabIssuesConfig.clientId}&redirect_uri=${GitLabIssuesConfig.redirectUri}&response_type=code`;\r\n    window.location.href = oauthUrl;\r\n}\r\n\r\n// Function to show authentication button\r\nfunction showAuthButton() {\r\n    const authButtonContainer = document.querySelector('.gitlab-button-container');\r\n    console.log(\"showing auth button container\");\r\n    if (authButtonContainer) {\r\n        authButtonContainer.style.setProperty('display', 'block', 'important');\r\n    }\r\n}\r\n\r\n// Function to hide authentication button\r\nfunction hideAuthButton() {\r\n    const authButtonContainer = document.querySelector('.gitlab-button-container');\r\n    console.log(\"hiding auth button container\");\r\n    if (authButtonContainer) {\r\n        authButtonContainer.style.setProperty('display', 'none', 'important');\r\n    }\r\n}\r\n\r\nasync function requestAccessToken(code) {\r\n    const tokenUrl = 'https://gitlab.com/oauth/token';\r\n    const params = {\r\n        client_id: GitLabIssuesConfig.clientId,\r\n        code: code,\r\n        grant_type: 'authorization_code',\r\n        redirect_uri: GitLabIssuesConfig.redirectUri\r\n    };\r\n\r\n    try {\r\n        const response = await fetch(tokenUrl, {\r\n            method: 'POST',\r\n            headers: {\r\n                'Content-Type': 'application/json'\r\n            },\r\n            body: JSON.stringify(params)\r\n        });\r\n\r\n        if (!response.ok) {\r\n            throw new Error('Failed to get access token');\r\n        }\r\n\r\n        const data = await response.json();\r\n        const accessToken = data.access_token;\r\n        localStorage.setItem(GitLabIssuesConfig.localStorageKey, accessToken);\r\n        hideAuthButton();\r\n        await fetchProjectId(accessToken);\r\n    } catch (error) {\r\n        console.error('Error requesting access token:', error);\r\n    }\r\n}\r\n\r\n// Function to fetch project ID based on project name\r\nasync function fetchProjectId(accessToken) {\r\n    try {\r\n        const projectsUrl = `https://gitlab.com/api/v4/projects?search=${encodeURIComponent(projectName)}`;\r\n        const response = await fetch(projectsUrl, {\r\n            headers: {\r\n                'Authorization': `Bearer ${accessToken}`\r\n            }\r\n        });\r\n\r\n        if (!response.ok) {\r\n            if (response.status === 401) {\r\n                // Clear token from local storage if it's expired\r\n                localStorage.removeItem(GitLabIssuesConfig.localStorageKey);\r\n                showAuthButton();\r\n            }\r\n            throw new Error('Failed to fetch projects');\r\n        }\r\n\r\n        const projects = await response.json();\r\n        const project = projects.find(p => p.name === projectName);\r\n\r\n        if (!project) {\r\n            throw new Error(`Project \"${projectName}\" not found`);\r\n        }\r\n\r\n        window.projectId = project.id;\r\n        await fetchIssuesByCriteria(accessToken, IssueFetchStrategy.ISSUE_ID);\r\n    } catch (error) {\r\n        console.error('Error fetching project ID:', error);\r\n    }\r\n}\r\n\r\n// Function to fetch GitLab issues using API token\r\nasync function fetchGitLabIssue(projectId, accessToken, fetchType, fetchParam) {\r\n    try {\r\n        let apiUrl = `https://gitlab.com/api/v4/projects/${projectId}/issues`;\r\n\r\n        if (fetchType === 'url') {\r\n            // Fetch the issue which contains the current URL in the issue title\r\n            apiUrl += `?search=${encodeURIComponent(fetchParam)}`;\r\n        } else if (fetchType === 'pageTitle') {\r\n            // Fetch the issue which contains the current URL title in the issue title itself\r\n            apiUrl += `?search=${encodeURIComponent(fetchParam.split('/').pop())}`;\r\n        } else if (fetchType === 'issueId') {\r\n            // Fetch an issue by ID\r\n            apiUrl = `https://gitlab.com/api/v4/projects/${projectId}/issues/${fetchParam}`;\r\n        }\r\n\r\n        const response = await fetch(apiUrl, {\r\n            headers: {\r\n                'Authorization': `Bearer ${accessToken}`\r\n            }\r\n        });\r\n\r\n        if (!response.ok) {\r\n            if (response.status === 401) {\r\n                // Clear token from local storage if it's expired\r\n                localStorage.removeItem(GitLabIssuesConfig.localStorageKey);\r\n            }\r\n            throw new Error('Failed to fetch issues' + ' status was ' + response.status);\r\n        }\r\n\r\n        const issueJson = await response.json();\r\n        window.currentIssueId = issueJson.iid;\r\n        console.log('fetchGitLabIssue data' + JSON.stringify(issueJson));\r\n        await displayIssue(issueJson, accessToken);\r\n    } catch (error) {\r\n        console.error('Error fetching issues:', error);\r\n    }\r\n}\r\n\r\nasync function fetchIssuesByCriteria(accessToken, fetchStrategy) {\r\n    try {\r\n        console.log(\"Show loading...\")\r\n        showLoadingOverlay(); // Show loading overlay\r\n        const currentUrl = window.location.href;\r\n        const currentUrlTitle = document.title;\r\n\r\n        // Example issue ID\r\n        const issueId = '1';\r\n\r\n        // Fetch issues based on the specified strategy\r\n        if (fetchStrategy === IssueFetchStrategy.URL) {\r\n            await fetchGitLabIssue(window.projectId, accessToken, IssueFetchStrategy.URL, currentUrl);\r\n        } else if (fetchStrategy === IssueFetchStrategy.PAGE_TITLE) {\r\n            await fetchGitLabIssue(window.projectId, accessToken, IssueFetchStrategy.PAGE_TITLE, currentUrlTitle);\r\n        } else if (fetchStrategy === IssueFetchStrategy.ISSUE_ID) {\r\n            await fetchGitLabIssue(window.projectId, accessToken, IssueFetchStrategy.ISSUE_ID, issueId);\r\n        } else {\r\n            console.error('Invalid fetch strategy');\r\n        }\r\n    } catch (error) {\r\n        console.error('Error fetching issues:', error);\r\n    } finally {\r\n        console.log(\"Finally block executed - hideLoadingOverlay()\");\r\n        hideLoadingOverlay();\r\n    }\r\n}\r\n\r\n// Function to fetch discussions for an issue\r\nasync function fetchIssueDiscussions(issueIid, accessToken) {\r\n    try {\r\n        const response = await fetch(`https://gitlab.com/api/v4/projects/55603648/issues/${issueIid}/discussions`, {\r\n            headers: {\r\n                'Authorization': `Bearer ${accessToken}`\r\n            }\r\n        });\r\n\r\n        if (!response.ok) {\r\n            if (response.status === 401) {\r\n                // Clear token from local storage if it's expired\r\n                localStorage.removeItem(GitLabIssuesConfig.localStorageKey);\r\n            }\r\n            throw new Error('Failed to fetch discussions for issue');\r\n        }\r\n\r\n        const data = await response.json();\r\n        return data;\r\n    } catch (error) {\r\n        console.error('Error fetching discussions for issue:', error);\r\n        return [];\r\n    }\r\n}\r\n\r\n// Function to display issues in the HTML\r\nasync function displayIssue(issue, accessToken) {\r\n    const issuesContainer = document.getElementById('issuesContainer');\r\n    issuesContainer.innerHTML = ''; // Clear previous content\r\n\r\n    if (!issue) {\r\n        const errorMessage = document.createElement('div');\r\n        errorMessage.textContent = 'Failed to fetch GitLab issue.';\r\n        issuesContainer.appendChild(errorMessage);\r\n        return;\r\n    }\r\n\r\n    // Create a label for number of comments\r\n    const totalComments = issue.user_notes_count\r\n    const commentsLabel = document.createElement('div');\r\n    commentsLabel.classList.add('comments-label');\r\n    commentsLabel.textContent = `${totalComments} Comments - powered by BeBlob`;\r\n    issuesContainer.appendChild(commentsLabel);\r\n\r\n    const issueElement = document.createElement('div');\r\n    issueElement.classList.add('issue');\r\n\r\n    // Issue Description\r\n    const descriptionElement = document.createElement('div');\r\n    descriptionElement.classList.add('issue-description');\r\n    descriptionElement.textContent = issue.title;\r\n    issueElement.appendChild(descriptionElement);\r\n\r\n    // Fetch and display discussions\r\n    const discussions = await fetchIssueDiscussions(issue.iid, accessToken);\r\n    if (Array.isArray(discussions)) {\r\n        discussions.forEach(discussion => {\r\n            discussion.notes.forEach((note, index) => {\r\n                const isIndented = index > 0 && note.type === \"DiscussionNote\";\r\n                const commentElement = createCommentElement(note, isIndented);\r\n                issueElement.appendChild(commentElement);\r\n            });\r\n        });\r\n    }\r\n    // If no discussions found\r\n    if (discussions.length === 0) {\r\n        const noCommentsElement = document.createElement('div');\r\n        noCommentsElement.textContent = 'No comments';\r\n        issueElement.appendChild(noCommentsElement);\r\n    }\r\n\r\n    issuesContainer.appendChild(issueElement);\r\n\r\n}\r\n\r\n// Function to create a comment element\r\nfunction createCommentElement(comment, isIndented) {\r\n    const commentElement = document.createElement('div');\r\n    commentElement.classList.add('comment');\r\n\r\n    if (isIndented) {\r\n        // If it's a threaded comment (not the top-level), indent\r\n        commentElement.style.marginLeft = '30px';\r\n    }\r\n\r\n    // Comment Header (Author and Timestamp)\r\n    const headerElement = document.createElement('div');\r\n    headerElement.classList.add('comment-header');\r\n\r\n    // Author Avatar\r\n    const authorAvatar = document.createElement('img');\r\n    authorAvatar.src = comment.author.avatar_url;\r\n    authorAvatar.alt = comment.author.name;\r\n    headerElement.appendChild(authorAvatar);\r\n\r\n    // Author Info (Name and Timestamp)\r\n    const authorInfo = document.createElement('div');\r\n    authorInfo.classList.add('author-info');\r\n\r\n    // Author Name with Link to Profile\r\n    const authorLink = document.createElement('a');\r\n    authorLink.href = comment.author.web_url;\r\n    authorLink.textContent = comment.author.name;\r\n    authorLink.classList.add('author-name');\r\n    authorInfo.appendChild(authorLink);\r\n\r\n    // Commented on Text\r\n    const commentedOn = document.createElement('span');\r\n    commentedOn.classList.add('commented-on');\r\n    commentedOn.textContent = ' commented on ';\r\n    authorInfo.appendChild(commentedOn);\r\n\r\n    // Comment Timestamp\r\n    const timestamp = document.createElement('span');\r\n    timestamp.classList.add('comment-timestamp');\r\n    const commentDate = new Date(comment.created_at);\r\n    const formattedDate = `${commentDate.toLocaleDateString('en-US', {\r\n        year: 'numeric',\r\n        month: 'short',\r\n        day: 'numeric'\r\n    })}`;\r\n    timestamp.textContent = formattedDate;\r\n    authorInfo.appendChild(timestamp);\r\n\r\n    headerElement.appendChild(authorInfo);\r\n    commentElement.appendChild(headerElement);\r\n\r\n    // Comment Body (Markdown)\r\n    const bodyElement = document.createElement('div');\r\n    bodyElement.classList.add('comment-body');\r\n    bodyElement.innerHTML = marked.parse(comment.body);\r\n    commentElement.appendChild(bodyElement);\r\n\r\n    return commentElement;\r\n}\r\n\r\n// Function to fetch current user details from GitLab\r\nasync function fetchCurrentUser(accessToken) {\r\n    try {\r\n        const currentUserUrl = 'https://gitlab.com/api/v4/user';\r\n        const response = await fetch(currentUserUrl, {\r\n            headers: {\r\n                'Authorization': `Bearer ${accessToken}`\r\n            }\r\n        });\r\n\r\n        if (!response.ok) {\r\n            if (response.status === 401) {\r\n                // Clear token from local storage if it's expired\r\n                localStorage.removeItem(GitLabIssuesConfig.localStorageKey);\r\n            }\r\n            throw new Error('Failed to fetch current user');\r\n        }\r\n\r\n        const userData = await response.json();\r\n        return userData;\r\n    } catch (error) {\r\n        console.error('Error fetching current user:', error);\r\n        return null;\r\n    }\r\n}\r\n\r\n// Function to display current user avatar with bubble\r\nfunction displayCurrentUserAvatar(user) {\r\n    const currentUserAvatarContainer = document.createElement('div');\r\n    currentUserAvatarContainer.classList.add('current-user-avatar-container');\r\n\r\n    // Avatar Image\r\n    const avatarImg = document.createElement('img');\r\n    avatarImg.src = user.avatar_url;\r\n    avatarImg.alt = user.name;\r\n    currentUserAvatarContainer.appendChild(avatarImg);\r\n\r\n    // Bubble Element\r\n    const bubbleElement = document.createElement('div');\r\n    bubbleElement.classList.add('bubble');\r\n    currentUserAvatarContainer.appendChild(bubbleElement);\r\n\r\n    const textareaContainer = document.querySelector('.comment-textarea-container');\r\n    textareaContainer.insertBefore(currentUserAvatarContainer, textareaContainer.firstChild);\r\n}\r\n\r\n// Check if there's a code in the URL (GitLab redirect)\r\nawait handleGitLabRedirect();\r\n\r\n// Function to show loading overlay\r\nfunction showLoadingOverlay() {\r\n    const overlay = document.getElementById('overlay');\r\n    overlay.style.display = 'flex';\r\n}\r\n\r\n// Function to hide loading overlay\r\nfunction hideLoadingOverlay() {\r\n    const overlay = document.getElementById('overlay');\r\n    overlay.style.display = 'none';\r\n}\r\n\r\n// Function to switch between tabs\r\nfunction openTab(tabName) {\r\n    // Get all elements with class=\"tabcontent\" and hide them\r\n    const tabcontent = document.getElementsByClassName(\"tabcontent\");\r\n    for (let i = 0; i < tabcontent.length; i++) {\r\n        tabcontent[i].style.display = \"none\";\r\n    }\r\n\r\n    // Get all elements with class=\"tablinks\" and remove the class \"active\"\r\n    const tablinks = document.getElementsByClassName(\"tablinks\");\r\n    for (let i = 0; i < tablinks.length; i++) {\r\n        tablinks[i].classList.remove(\"active\");\r\n    }\r\n\r\n    // Show the current tab, and add an \"active\" class to the button that corresponds to the tab\r\n    document.getElementById(tabName).style.display = \"block\";\r\n    document.querySelector(`button[data-tab=\"${tabName}\"]`).classList.add(\"active\");\r\n\r\n    // If switching to Preview tab, update the preview\r\n    if (tabName === 'Preview') {\r\n        updatePreview();\r\n    }\r\n}\r\n\r\n// Function to update the preview with Markdown content\r\nfunction updatePreview() {\r\n    const markdownContent = simplemde.value();\r\n    const previewContent = document.getElementById(\"previewContent\");\r\n    previewContent.innerHTML = marked.parse(markdownContent);\r\n}\r\n\r\nasync function addCommentToIssue(accessToken, commentBody) {\r\n    try {\r\n        const apiUrl = `https://gitlab.com/api/v4/projects/${window.projectId}/issues/${window.currentIssueId}/notes`;\r\n        const response = await fetch(apiUrl, {\r\n            method: 'POST',\r\n            headers: {\r\n                'Authorization': `Bearer ${accessToken}`,\r\n                'Content-Type': 'application/json'\r\n            },\r\n            body: JSON.stringify({ body: commentBody })\r\n        });\r\n\r\n        if (!response.ok) {\r\n            throw new Error('Failed to add comment to issue');\r\n        }\r\n\r\n        const data = await response.json();\r\n        return data;\r\n    } catch (error) {\r\n        console.error('Error adding comment to issue:', error);\r\n    }\r\n}\r\n\r\ndocument.getElementById(\"addCommentButton\").addEventListener(\"click\", async () => {\r\n    const newComment = simplemde.value();\r\n    const storedToken = localStorage.getItem(GitLabIssuesConfig.localStorageKey);\r\n\r\n    if (!storedToken) {\r\n        console.error('Access token not found');\r\n        return;\r\n    }\r\n\r\n    if (!window.projectId || !window.currentIssueId) {\r\n        console.error('Project ID or Issue ID not found');\r\n        return;\r\n    }\r\n\r\n    await addCommentToIssue(storedToken, newComment);\r\n    // clear textarea\r\n    simplemde.value(\"\");\r\n    await fetchIssuesByCriteria(storedToken, IssueFetchStrategy.ISSUE_ID);\r\n});\r\n\r\n// Event listener for tab clicks\r\ndocument.querySelectorAll('.tablinks').forEach(tab => {\r\n    tab.addEventListener('click', () => {\r\n        const tabName = tab.getAttribute('data-tab');\r\n        openTab(tabName);\r\n    });\r\n});\r\n\r\nconst authButton = document.getElementById('authButton');\r\nauthButton.style.display = 'block';\r\nauthButton.addEventListener('click', authenticateWithGitLab);\r\n\r\n// Check if we have a GitLab access token in localStorage\r\nconst storedToken = localStorage.getItem(GitLabIssuesConfig.localStorageKey);\r\n\r\nif (storedToken) {\r\n    // If token exists, hide the auth button and fetch project details\r\n    hideAuthButton();\r\n    await fetchProjectId(storedToken);\r\n\r\n    // Fetch current user details\r\n    fetchCurrentUser(storedToken)\r\n        .then(user => {\r\n            if (user) {\r\n                displayCurrentUserAvatar(user);\r\n            }\r\n        })\r\n        .catch(error => {\r\n            console.error('Error fetching current user:', error);\r\n        });\r\n} else {\r\n    // Show the auth button if no token is present\r\n    showAuthButton();\r\n}\r\n\r\n\r\n// Function to handle GitLab redirect with code\r\nasync function handleGitLabRedirect() {\r\n    const urlParams = new URLSearchParams(window.location.search);\r\n    const code = urlParams.get('code');\r\n\r\n    if (code) {\r\n        // Request access token\r\n        await requestAccessToken(code);\r\n    }\r\n}\r\n\r\n// Function to check if the URL contains an OAuth code and handle it\r\nasync function checkForOAuthRedirect() {\r\n    const urlParams = new URLSearchParams(window.location.search);\r\n    if (urlParams.has('code')) {\r\n        await handleGitLabRedirect();\r\n    }\r\n}\r\n\r\n// Only call this function if the URL contains the `code` parameter\r\nawait checkForOAuthRedirect();\r\n\n__webpack_async_result__();\n} catch(e) { __webpack_async_result__(e); } }, 1);\n\n//# sourceURL=webpack://beblob/./src/js/main.js?");
 
 /***/ }),
 
@@ -2166,6 +2166,7 @@ eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpac
 /******/ 		// Check if module is in cache
 /******/ 		var cachedModule = __webpack_module_cache__[moduleId];
 /******/ 		if (cachedModule !== undefined) {
+/******/ 			if (cachedModule.error !== undefined) throw cachedModule.error;
 /******/ 			return cachedModule.exports;
 /******/ 		}
 /******/ 		// Create a new module (and put it into the cache)
@@ -2176,11 +2177,28 @@ eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpac
 /******/ 		};
 /******/ 	
 /******/ 		// Execute the module function
-/******/ 		__webpack_modules__[moduleId].call(module.exports, module, module.exports, __webpack_require__);
+/******/ 		try {
+/******/ 			var execOptions = { id: moduleId, module: module, factory: __webpack_modules__[moduleId], require: __webpack_require__ };
+/******/ 			__webpack_require__.i.forEach(function(handler) { handler(execOptions); });
+/******/ 			module = execOptions.module;
+/******/ 			execOptions.factory.call(module.exports, module, module.exports, execOptions.require);
+/******/ 		} catch(e) {
+/******/ 			module.error = e;
+/******/ 			throw e;
+/******/ 		}
 /******/ 	
 /******/ 		// Return the exports of the module
 /******/ 		return module.exports;
 /******/ 	}
+/******/ 	
+/******/ 	// expose the modules object (__webpack_modules__)
+/******/ 	__webpack_require__.m = __webpack_modules__;
+/******/ 	
+/******/ 	// expose the module cache
+/******/ 	__webpack_require__.c = __webpack_module_cache__;
+/******/ 	
+/******/ 	// expose the module execution interceptor
+/******/ 	__webpack_require__.i = [];
 /******/ 	
 /************************************************************************/
 /******/ 	/* webpack/runtime/async module */
@@ -2276,9 +2294,86 @@ eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpac
 /******/ 		};
 /******/ 	})();
 /******/ 	
+/******/ 	/* webpack/runtime/get javascript update chunk filename */
+/******/ 	(() => {
+/******/ 		// This function allow to reference all chunks
+/******/ 		__webpack_require__.hu = (chunkId) => {
+/******/ 			// return url for filenames based on template
+/******/ 			return "" + chunkId + "." + __webpack_require__.h() + ".hot-update.js";
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/get update manifest filename */
+/******/ 	(() => {
+/******/ 		__webpack_require__.hmrF = () => ("main." + __webpack_require__.h() + ".hot-update.json");
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/getFullHash */
+/******/ 	(() => {
+/******/ 		__webpack_require__.h = () => ("6e2b4f07406e388961ec")
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/global */
+/******/ 	(() => {
+/******/ 		__webpack_require__.g = (function() {
+/******/ 			if (typeof globalThis === 'object') return globalThis;
+/******/ 			try {
+/******/ 				return this || new Function('return this')();
+/******/ 			} catch (e) {
+/******/ 				if (typeof window === 'object') return window;
+/******/ 			}
+/******/ 		})();
+/******/ 	})();
+/******/ 	
 /******/ 	/* webpack/runtime/hasOwnProperty shorthand */
 /******/ 	(() => {
 /******/ 		__webpack_require__.o = (obj, prop) => (Object.prototype.hasOwnProperty.call(obj, prop))
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/load script */
+/******/ 	(() => {
+/******/ 		var inProgress = {};
+/******/ 		var dataWebpackPrefix = "beblob:";
+/******/ 		// loadScript function to load a script via script tag
+/******/ 		__webpack_require__.l = (url, done, key, chunkId) => {
+/******/ 			if(inProgress[url]) { inProgress[url].push(done); return; }
+/******/ 			var script, needAttach;
+/******/ 			if(key !== undefined) {
+/******/ 				var scripts = document.getElementsByTagName("script");
+/******/ 				for(var i = 0; i < scripts.length; i++) {
+/******/ 					var s = scripts[i];
+/******/ 					if(s.getAttribute("src") == url || s.getAttribute("data-webpack") == dataWebpackPrefix + key) { script = s; break; }
+/******/ 				}
+/******/ 			}
+/******/ 			if(!script) {
+/******/ 				needAttach = true;
+/******/ 				script = document.createElement('script');
+/******/ 		
+/******/ 				script.charset = 'utf-8';
+/******/ 				script.timeout = 120;
+/******/ 				if (__webpack_require__.nc) {
+/******/ 					script.setAttribute("nonce", __webpack_require__.nc);
+/******/ 				}
+/******/ 				script.setAttribute("data-webpack", dataWebpackPrefix + key);
+/******/ 		
+/******/ 				script.src = url;
+/******/ 			}
+/******/ 			inProgress[url] = [done];
+/******/ 			var onScriptComplete = (prev, event) => {
+/******/ 				// avoid mem leaks in IE.
+/******/ 				script.onerror = script.onload = null;
+/******/ 				clearTimeout(timeout);
+/******/ 				var doneFns = inProgress[url];
+/******/ 				delete inProgress[url];
+/******/ 				script.parentNode && script.parentNode.removeChild(script);
+/******/ 				doneFns && doneFns.forEach((fn) => (fn(event)));
+/******/ 				if(prev) return prev(event);
+/******/ 			}
+/******/ 			var timeout = setTimeout(onScriptComplete.bind(null, undefined, { type: 'timeout', target: script }), 120000);
+/******/ 			script.onerror = onScriptComplete.bind(null, script.onerror);
+/******/ 			script.onload = onScriptComplete.bind(null, script.onload);
+/******/ 			needAttach && document.head.appendChild(script);
+/******/ 		};
 /******/ 	})();
 /******/ 	
 /******/ 	/* webpack/runtime/make namespace object */
@@ -2292,11 +2387,941 @@ eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpac
 /******/ 		};
 /******/ 	})();
 /******/ 	
+/******/ 	/* webpack/runtime/hot module replacement */
+/******/ 	(() => {
+/******/ 		var currentModuleData = {};
+/******/ 		var installedModules = __webpack_require__.c;
+/******/ 		
+/******/ 		// module and require creation
+/******/ 		var currentChildModule;
+/******/ 		var currentParents = [];
+/******/ 		
+/******/ 		// status
+/******/ 		var registeredStatusHandlers = [];
+/******/ 		var currentStatus = "idle";
+/******/ 		
+/******/ 		// while downloading
+/******/ 		var blockingPromises = 0;
+/******/ 		var blockingPromisesWaiting = [];
+/******/ 		
+/******/ 		// The update info
+/******/ 		var currentUpdateApplyHandlers;
+/******/ 		var queuedInvalidatedModules;
+/******/ 		
+/******/ 		__webpack_require__.hmrD = currentModuleData;
+/******/ 		
+/******/ 		__webpack_require__.i.push(function (options) {
+/******/ 			var module = options.module;
+/******/ 			var require = createRequire(options.require, options.id);
+/******/ 			module.hot = createModuleHotObject(options.id, module);
+/******/ 			module.parents = currentParents;
+/******/ 			module.children = [];
+/******/ 			currentParents = [];
+/******/ 			options.require = require;
+/******/ 		});
+/******/ 		
+/******/ 		__webpack_require__.hmrC = {};
+/******/ 		__webpack_require__.hmrI = {};
+/******/ 		
+/******/ 		function createRequire(require, moduleId) {
+/******/ 			var me = installedModules[moduleId];
+/******/ 			if (!me) return require;
+/******/ 			var fn = function (request) {
+/******/ 				if (me.hot.active) {
+/******/ 					if (installedModules[request]) {
+/******/ 						var parents = installedModules[request].parents;
+/******/ 						if (parents.indexOf(moduleId) === -1) {
+/******/ 							parents.push(moduleId);
+/******/ 						}
+/******/ 					} else {
+/******/ 						currentParents = [moduleId];
+/******/ 						currentChildModule = request;
+/******/ 					}
+/******/ 					if (me.children.indexOf(request) === -1) {
+/******/ 						me.children.push(request);
+/******/ 					}
+/******/ 				} else {
+/******/ 					console.warn(
+/******/ 						"[HMR] unexpected require(" +
+/******/ 							request +
+/******/ 							") from disposed module " +
+/******/ 							moduleId
+/******/ 					);
+/******/ 					currentParents = [];
+/******/ 				}
+/******/ 				return require(request);
+/******/ 			};
+/******/ 			var createPropertyDescriptor = function (name) {
+/******/ 				return {
+/******/ 					configurable: true,
+/******/ 					enumerable: true,
+/******/ 					get: function () {
+/******/ 						return require[name];
+/******/ 					},
+/******/ 					set: function (value) {
+/******/ 						require[name] = value;
+/******/ 					}
+/******/ 				};
+/******/ 			};
+/******/ 			for (var name in require) {
+/******/ 				if (Object.prototype.hasOwnProperty.call(require, name) && name !== "e") {
+/******/ 					Object.defineProperty(fn, name, createPropertyDescriptor(name));
+/******/ 				}
+/******/ 			}
+/******/ 			fn.e = function (chunkId, fetchPriority) {
+/******/ 				return trackBlockingPromise(require.e(chunkId, fetchPriority));
+/******/ 			};
+/******/ 			return fn;
+/******/ 		}
+/******/ 		
+/******/ 		function createModuleHotObject(moduleId, me) {
+/******/ 			var _main = currentChildModule !== moduleId;
+/******/ 			var hot = {
+/******/ 				// private stuff
+/******/ 				_acceptedDependencies: {},
+/******/ 				_acceptedErrorHandlers: {},
+/******/ 				_declinedDependencies: {},
+/******/ 				_selfAccepted: false,
+/******/ 				_selfDeclined: false,
+/******/ 				_selfInvalidated: false,
+/******/ 				_disposeHandlers: [],
+/******/ 				_main: _main,
+/******/ 				_requireSelf: function () {
+/******/ 					currentParents = me.parents.slice();
+/******/ 					currentChildModule = _main ? undefined : moduleId;
+/******/ 					__webpack_require__(moduleId);
+/******/ 				},
+/******/ 		
+/******/ 				// Module API
+/******/ 				active: true,
+/******/ 				accept: function (dep, callback, errorHandler) {
+/******/ 					if (dep === undefined) hot._selfAccepted = true;
+/******/ 					else if (typeof dep === "function") hot._selfAccepted = dep;
+/******/ 					else if (typeof dep === "object" && dep !== null) {
+/******/ 						for (var i = 0; i < dep.length; i++) {
+/******/ 							hot._acceptedDependencies[dep[i]] = callback || function () {};
+/******/ 							hot._acceptedErrorHandlers[dep[i]] = errorHandler;
+/******/ 						}
+/******/ 					} else {
+/******/ 						hot._acceptedDependencies[dep] = callback || function () {};
+/******/ 						hot._acceptedErrorHandlers[dep] = errorHandler;
+/******/ 					}
+/******/ 				},
+/******/ 				decline: function (dep) {
+/******/ 					if (dep === undefined) hot._selfDeclined = true;
+/******/ 					else if (typeof dep === "object" && dep !== null)
+/******/ 						for (var i = 0; i < dep.length; i++)
+/******/ 							hot._declinedDependencies[dep[i]] = true;
+/******/ 					else hot._declinedDependencies[dep] = true;
+/******/ 				},
+/******/ 				dispose: function (callback) {
+/******/ 					hot._disposeHandlers.push(callback);
+/******/ 				},
+/******/ 				addDisposeHandler: function (callback) {
+/******/ 					hot._disposeHandlers.push(callback);
+/******/ 				},
+/******/ 				removeDisposeHandler: function (callback) {
+/******/ 					var idx = hot._disposeHandlers.indexOf(callback);
+/******/ 					if (idx >= 0) hot._disposeHandlers.splice(idx, 1);
+/******/ 				},
+/******/ 				invalidate: function () {
+/******/ 					this._selfInvalidated = true;
+/******/ 					switch (currentStatus) {
+/******/ 						case "idle":
+/******/ 							currentUpdateApplyHandlers = [];
+/******/ 							Object.keys(__webpack_require__.hmrI).forEach(function (key) {
+/******/ 								__webpack_require__.hmrI[key](
+/******/ 									moduleId,
+/******/ 									currentUpdateApplyHandlers
+/******/ 								);
+/******/ 							});
+/******/ 							setStatus("ready");
+/******/ 							break;
+/******/ 						case "ready":
+/******/ 							Object.keys(__webpack_require__.hmrI).forEach(function (key) {
+/******/ 								__webpack_require__.hmrI[key](
+/******/ 									moduleId,
+/******/ 									currentUpdateApplyHandlers
+/******/ 								);
+/******/ 							});
+/******/ 							break;
+/******/ 						case "prepare":
+/******/ 						case "check":
+/******/ 						case "dispose":
+/******/ 						case "apply":
+/******/ 							(queuedInvalidatedModules = queuedInvalidatedModules || []).push(
+/******/ 								moduleId
+/******/ 							);
+/******/ 							break;
+/******/ 						default:
+/******/ 							// ignore requests in error states
+/******/ 							break;
+/******/ 					}
+/******/ 				},
+/******/ 		
+/******/ 				// Management API
+/******/ 				check: hotCheck,
+/******/ 				apply: hotApply,
+/******/ 				status: function (l) {
+/******/ 					if (!l) return currentStatus;
+/******/ 					registeredStatusHandlers.push(l);
+/******/ 				},
+/******/ 				addStatusHandler: function (l) {
+/******/ 					registeredStatusHandlers.push(l);
+/******/ 				},
+/******/ 				removeStatusHandler: function (l) {
+/******/ 					var idx = registeredStatusHandlers.indexOf(l);
+/******/ 					if (idx >= 0) registeredStatusHandlers.splice(idx, 1);
+/******/ 				},
+/******/ 		
+/******/ 				//inherit from previous dispose call
+/******/ 				data: currentModuleData[moduleId]
+/******/ 			};
+/******/ 			currentChildModule = undefined;
+/******/ 			return hot;
+/******/ 		}
+/******/ 		
+/******/ 		function setStatus(newStatus) {
+/******/ 			currentStatus = newStatus;
+/******/ 			var results = [];
+/******/ 		
+/******/ 			for (var i = 0; i < registeredStatusHandlers.length; i++)
+/******/ 				results[i] = registeredStatusHandlers[i].call(null, newStatus);
+/******/ 		
+/******/ 			return Promise.all(results).then(function () {});
+/******/ 		}
+/******/ 		
+/******/ 		function unblock() {
+/******/ 			if (--blockingPromises === 0) {
+/******/ 				setStatus("ready").then(function () {
+/******/ 					if (blockingPromises === 0) {
+/******/ 						var list = blockingPromisesWaiting;
+/******/ 						blockingPromisesWaiting = [];
+/******/ 						for (var i = 0; i < list.length; i++) {
+/******/ 							list[i]();
+/******/ 						}
+/******/ 					}
+/******/ 				});
+/******/ 			}
+/******/ 		}
+/******/ 		
+/******/ 		function trackBlockingPromise(promise) {
+/******/ 			switch (currentStatus) {
+/******/ 				case "ready":
+/******/ 					setStatus("prepare");
+/******/ 				/* fallthrough */
+/******/ 				case "prepare":
+/******/ 					blockingPromises++;
+/******/ 					promise.then(unblock, unblock);
+/******/ 					return promise;
+/******/ 				default:
+/******/ 					return promise;
+/******/ 			}
+/******/ 		}
+/******/ 		
+/******/ 		function waitForBlockingPromises(fn) {
+/******/ 			if (blockingPromises === 0) return fn();
+/******/ 			return new Promise(function (resolve) {
+/******/ 				blockingPromisesWaiting.push(function () {
+/******/ 					resolve(fn());
+/******/ 				});
+/******/ 			});
+/******/ 		}
+/******/ 		
+/******/ 		function hotCheck(applyOnUpdate) {
+/******/ 			if (currentStatus !== "idle") {
+/******/ 				throw new Error("check() is only allowed in idle status");
+/******/ 			}
+/******/ 			return setStatus("check")
+/******/ 				.then(__webpack_require__.hmrM)
+/******/ 				.then(function (update) {
+/******/ 					if (!update) {
+/******/ 						return setStatus(applyInvalidatedModules() ? "ready" : "idle").then(
+/******/ 							function () {
+/******/ 								return null;
+/******/ 							}
+/******/ 						);
+/******/ 					}
+/******/ 		
+/******/ 					return setStatus("prepare").then(function () {
+/******/ 						var updatedModules = [];
+/******/ 						currentUpdateApplyHandlers = [];
+/******/ 		
+/******/ 						return Promise.all(
+/******/ 							Object.keys(__webpack_require__.hmrC).reduce(function (
+/******/ 								promises,
+/******/ 								key
+/******/ 							) {
+/******/ 								__webpack_require__.hmrC[key](
+/******/ 									update.c,
+/******/ 									update.r,
+/******/ 									update.m,
+/******/ 									promises,
+/******/ 									currentUpdateApplyHandlers,
+/******/ 									updatedModules
+/******/ 								);
+/******/ 								return promises;
+/******/ 							}, [])
+/******/ 						).then(function () {
+/******/ 							return waitForBlockingPromises(function () {
+/******/ 								if (applyOnUpdate) {
+/******/ 									return internalApply(applyOnUpdate);
+/******/ 								} else {
+/******/ 									return setStatus("ready").then(function () {
+/******/ 										return updatedModules;
+/******/ 									});
+/******/ 								}
+/******/ 							});
+/******/ 						});
+/******/ 					});
+/******/ 				});
+/******/ 		}
+/******/ 		
+/******/ 		function hotApply(options) {
+/******/ 			if (currentStatus !== "ready") {
+/******/ 				return Promise.resolve().then(function () {
+/******/ 					throw new Error(
+/******/ 						"apply() is only allowed in ready status (state: " +
+/******/ 							currentStatus +
+/******/ 							")"
+/******/ 					);
+/******/ 				});
+/******/ 			}
+/******/ 			return internalApply(options);
+/******/ 		}
+/******/ 		
+/******/ 		function internalApply(options) {
+/******/ 			options = options || {};
+/******/ 		
+/******/ 			applyInvalidatedModules();
+/******/ 		
+/******/ 			var results = currentUpdateApplyHandlers.map(function (handler) {
+/******/ 				return handler(options);
+/******/ 			});
+/******/ 			currentUpdateApplyHandlers = undefined;
+/******/ 		
+/******/ 			var errors = results
+/******/ 				.map(function (r) {
+/******/ 					return r.error;
+/******/ 				})
+/******/ 				.filter(Boolean);
+/******/ 		
+/******/ 			if (errors.length > 0) {
+/******/ 				return setStatus("abort").then(function () {
+/******/ 					throw errors[0];
+/******/ 				});
+/******/ 			}
+/******/ 		
+/******/ 			// Now in "dispose" phase
+/******/ 			var disposePromise = setStatus("dispose");
+/******/ 		
+/******/ 			results.forEach(function (result) {
+/******/ 				if (result.dispose) result.dispose();
+/******/ 			});
+/******/ 		
+/******/ 			// Now in "apply" phase
+/******/ 			var applyPromise = setStatus("apply");
+/******/ 		
+/******/ 			var error;
+/******/ 			var reportError = function (err) {
+/******/ 				if (!error) error = err;
+/******/ 			};
+/******/ 		
+/******/ 			var outdatedModules = [];
+/******/ 			results.forEach(function (result) {
+/******/ 				if (result.apply) {
+/******/ 					var modules = result.apply(reportError);
+/******/ 					if (modules) {
+/******/ 						for (var i = 0; i < modules.length; i++) {
+/******/ 							outdatedModules.push(modules[i]);
+/******/ 						}
+/******/ 					}
+/******/ 				}
+/******/ 			});
+/******/ 		
+/******/ 			return Promise.all([disposePromise, applyPromise]).then(function () {
+/******/ 				// handle errors in accept handlers and self accepted module load
+/******/ 				if (error) {
+/******/ 					return setStatus("fail").then(function () {
+/******/ 						throw error;
+/******/ 					});
+/******/ 				}
+/******/ 		
+/******/ 				if (queuedInvalidatedModules) {
+/******/ 					return internalApply(options).then(function (list) {
+/******/ 						outdatedModules.forEach(function (moduleId) {
+/******/ 							if (list.indexOf(moduleId) < 0) list.push(moduleId);
+/******/ 						});
+/******/ 						return list;
+/******/ 					});
+/******/ 				}
+/******/ 		
+/******/ 				return setStatus("idle").then(function () {
+/******/ 					return outdatedModules;
+/******/ 				});
+/******/ 			});
+/******/ 		}
+/******/ 		
+/******/ 		function applyInvalidatedModules() {
+/******/ 			if (queuedInvalidatedModules) {
+/******/ 				if (!currentUpdateApplyHandlers) currentUpdateApplyHandlers = [];
+/******/ 				Object.keys(__webpack_require__.hmrI).forEach(function (key) {
+/******/ 					queuedInvalidatedModules.forEach(function (moduleId) {
+/******/ 						__webpack_require__.hmrI[key](
+/******/ 							moduleId,
+/******/ 							currentUpdateApplyHandlers
+/******/ 						);
+/******/ 					});
+/******/ 				});
+/******/ 				queuedInvalidatedModules = undefined;
+/******/ 				return true;
+/******/ 			}
+/******/ 		}
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/publicPath */
+/******/ 	(() => {
+/******/ 		var scriptUrl;
+/******/ 		if (__webpack_require__.g.importScripts) scriptUrl = __webpack_require__.g.location + "";
+/******/ 		var document = __webpack_require__.g.document;
+/******/ 		if (!scriptUrl && document) {
+/******/ 			if (document.currentScript)
+/******/ 				scriptUrl = document.currentScript.src;
+/******/ 			if (!scriptUrl) {
+/******/ 				var scripts = document.getElementsByTagName("script");
+/******/ 				if(scripts.length) {
+/******/ 					var i = scripts.length - 1;
+/******/ 					while (i > -1 && (!scriptUrl || !/^http(s?):/.test(scriptUrl))) scriptUrl = scripts[i--].src;
+/******/ 				}
+/******/ 			}
+/******/ 		}
+/******/ 		// When supporting browsers where an automatic publicPath is not supported you must specify an output.publicPath manually via configuration
+/******/ 		// or pass an empty string ("") and set the __webpack_public_path__ variable from your code to use your own logic.
+/******/ 		if (!scriptUrl) throw new Error("Automatic publicPath is not supported in this browser");
+/******/ 		scriptUrl = scriptUrl.replace(/#.*$/, "").replace(/\?.*$/, "").replace(/\/[^\/]+$/, "/");
+/******/ 		__webpack_require__.p = scriptUrl;
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/jsonp chunk loading */
+/******/ 	(() => {
+/******/ 		// no baseURI
+/******/ 		
+/******/ 		// object to store loaded and loading chunks
+/******/ 		// undefined = chunk not loaded, null = chunk preloaded/prefetched
+/******/ 		// [resolve, reject, Promise] = chunk loading, 0 = chunk loaded
+/******/ 		var installedChunks = __webpack_require__.hmrS_jsonp = __webpack_require__.hmrS_jsonp || {
+/******/ 			"main": 0
+/******/ 		};
+/******/ 		
+/******/ 		// no chunk on demand loading
+/******/ 		
+/******/ 		// no prefetching
+/******/ 		
+/******/ 		// no preloaded
+/******/ 		
+/******/ 		var currentUpdatedModulesList;
+/******/ 		var waitingUpdateResolves = {};
+/******/ 		function loadUpdateChunk(chunkId, updatedModulesList) {
+/******/ 			currentUpdatedModulesList = updatedModulesList;
+/******/ 			return new Promise((resolve, reject) => {
+/******/ 				waitingUpdateResolves[chunkId] = resolve;
+/******/ 				// start update chunk loading
+/******/ 				var url = __webpack_require__.p + __webpack_require__.hu(chunkId);
+/******/ 				// create error before stack unwound to get useful stacktrace later
+/******/ 				var error = new Error();
+/******/ 				var loadingEnded = (event) => {
+/******/ 					if(waitingUpdateResolves[chunkId]) {
+/******/ 						waitingUpdateResolves[chunkId] = undefined
+/******/ 						var errorType = event && (event.type === 'load' ? 'missing' : event.type);
+/******/ 						var realSrc = event && event.target && event.target.src;
+/******/ 						error.message = 'Loading hot update chunk ' + chunkId + ' failed.\n(' + errorType + ': ' + realSrc + ')';
+/******/ 						error.name = 'ChunkLoadError';
+/******/ 						error.type = errorType;
+/******/ 						error.request = realSrc;
+/******/ 						reject(error);
+/******/ 					}
+/******/ 				};
+/******/ 				__webpack_require__.l(url, loadingEnded);
+/******/ 			});
+/******/ 		}
+/******/ 		
+/******/ 		self["webpackHotUpdatebeblob"] = (chunkId, moreModules, runtime) => {
+/******/ 			for(var moduleId in moreModules) {
+/******/ 				if(__webpack_require__.o(moreModules, moduleId)) {
+/******/ 					currentUpdate[moduleId] = moreModules[moduleId];
+/******/ 					if(currentUpdatedModulesList) currentUpdatedModulesList.push(moduleId);
+/******/ 				}
+/******/ 			}
+/******/ 			if(runtime) currentUpdateRuntime.push(runtime);
+/******/ 			if(waitingUpdateResolves[chunkId]) {
+/******/ 				waitingUpdateResolves[chunkId]();
+/******/ 				waitingUpdateResolves[chunkId] = undefined;
+/******/ 			}
+/******/ 		};
+/******/ 		
+/******/ 		var currentUpdateChunks;
+/******/ 		var currentUpdate;
+/******/ 		var currentUpdateRemovedChunks;
+/******/ 		var currentUpdateRuntime;
+/******/ 		function applyHandler(options) {
+/******/ 			if (__webpack_require__.f) delete __webpack_require__.f.jsonpHmr;
+/******/ 			currentUpdateChunks = undefined;
+/******/ 			function getAffectedModuleEffects(updateModuleId) {
+/******/ 				var outdatedModules = [updateModuleId];
+/******/ 				var outdatedDependencies = {};
+/******/ 		
+/******/ 				var queue = outdatedModules.map(function (id) {
+/******/ 					return {
+/******/ 						chain: [id],
+/******/ 						id: id
+/******/ 					};
+/******/ 				});
+/******/ 				while (queue.length > 0) {
+/******/ 					var queueItem = queue.pop();
+/******/ 					var moduleId = queueItem.id;
+/******/ 					var chain = queueItem.chain;
+/******/ 					var module = __webpack_require__.c[moduleId];
+/******/ 					if (
+/******/ 						!module ||
+/******/ 						(module.hot._selfAccepted && !module.hot._selfInvalidated)
+/******/ 					)
+/******/ 						continue;
+/******/ 					if (module.hot._selfDeclined) {
+/******/ 						return {
+/******/ 							type: "self-declined",
+/******/ 							chain: chain,
+/******/ 							moduleId: moduleId
+/******/ 						};
+/******/ 					}
+/******/ 					if (module.hot._main) {
+/******/ 						return {
+/******/ 							type: "unaccepted",
+/******/ 							chain: chain,
+/******/ 							moduleId: moduleId
+/******/ 						};
+/******/ 					}
+/******/ 					for (var i = 0; i < module.parents.length; i++) {
+/******/ 						var parentId = module.parents[i];
+/******/ 						var parent = __webpack_require__.c[parentId];
+/******/ 						if (!parent) continue;
+/******/ 						if (parent.hot._declinedDependencies[moduleId]) {
+/******/ 							return {
+/******/ 								type: "declined",
+/******/ 								chain: chain.concat([parentId]),
+/******/ 								moduleId: moduleId,
+/******/ 								parentId: parentId
+/******/ 							};
+/******/ 						}
+/******/ 						if (outdatedModules.indexOf(parentId) !== -1) continue;
+/******/ 						if (parent.hot._acceptedDependencies[moduleId]) {
+/******/ 							if (!outdatedDependencies[parentId])
+/******/ 								outdatedDependencies[parentId] = [];
+/******/ 							addAllToSet(outdatedDependencies[parentId], [moduleId]);
+/******/ 							continue;
+/******/ 						}
+/******/ 						delete outdatedDependencies[parentId];
+/******/ 						outdatedModules.push(parentId);
+/******/ 						queue.push({
+/******/ 							chain: chain.concat([parentId]),
+/******/ 							id: parentId
+/******/ 						});
+/******/ 					}
+/******/ 				}
+/******/ 		
+/******/ 				return {
+/******/ 					type: "accepted",
+/******/ 					moduleId: updateModuleId,
+/******/ 					outdatedModules: outdatedModules,
+/******/ 					outdatedDependencies: outdatedDependencies
+/******/ 				};
+/******/ 			}
+/******/ 		
+/******/ 			function addAllToSet(a, b) {
+/******/ 				for (var i = 0; i < b.length; i++) {
+/******/ 					var item = b[i];
+/******/ 					if (a.indexOf(item) === -1) a.push(item);
+/******/ 				}
+/******/ 			}
+/******/ 		
+/******/ 			// at begin all updates modules are outdated
+/******/ 			// the "outdated" status can propagate to parents if they don't accept the children
+/******/ 			var outdatedDependencies = {};
+/******/ 			var outdatedModules = [];
+/******/ 			var appliedUpdate = {};
+/******/ 		
+/******/ 			var warnUnexpectedRequire = function warnUnexpectedRequire(module) {
+/******/ 				console.warn(
+/******/ 					"[HMR] unexpected require(" + module.id + ") to disposed module"
+/******/ 				);
+/******/ 			};
+/******/ 		
+/******/ 			for (var moduleId in currentUpdate) {
+/******/ 				if (__webpack_require__.o(currentUpdate, moduleId)) {
+/******/ 					var newModuleFactory = currentUpdate[moduleId];
+/******/ 					/** @type {TODO} */
+/******/ 					var result;
+/******/ 					if (newModuleFactory) {
+/******/ 						result = getAffectedModuleEffects(moduleId);
+/******/ 					} else {
+/******/ 						result = {
+/******/ 							type: "disposed",
+/******/ 							moduleId: moduleId
+/******/ 						};
+/******/ 					}
+/******/ 					/** @type {Error|false} */
+/******/ 					var abortError = false;
+/******/ 					var doApply = false;
+/******/ 					var doDispose = false;
+/******/ 					var chainInfo = "";
+/******/ 					if (result.chain) {
+/******/ 						chainInfo = "\nUpdate propagation: " + result.chain.join(" -> ");
+/******/ 					}
+/******/ 					switch (result.type) {
+/******/ 						case "self-declined":
+/******/ 							if (options.onDeclined) options.onDeclined(result);
+/******/ 							if (!options.ignoreDeclined)
+/******/ 								abortError = new Error(
+/******/ 									"Aborted because of self decline: " +
+/******/ 										result.moduleId +
+/******/ 										chainInfo
+/******/ 								);
+/******/ 							break;
+/******/ 						case "declined":
+/******/ 							if (options.onDeclined) options.onDeclined(result);
+/******/ 							if (!options.ignoreDeclined)
+/******/ 								abortError = new Error(
+/******/ 									"Aborted because of declined dependency: " +
+/******/ 										result.moduleId +
+/******/ 										" in " +
+/******/ 										result.parentId +
+/******/ 										chainInfo
+/******/ 								);
+/******/ 							break;
+/******/ 						case "unaccepted":
+/******/ 							if (options.onUnaccepted) options.onUnaccepted(result);
+/******/ 							if (!options.ignoreUnaccepted)
+/******/ 								abortError = new Error(
+/******/ 									"Aborted because " + moduleId + " is not accepted" + chainInfo
+/******/ 								);
+/******/ 							break;
+/******/ 						case "accepted":
+/******/ 							if (options.onAccepted) options.onAccepted(result);
+/******/ 							doApply = true;
+/******/ 							break;
+/******/ 						case "disposed":
+/******/ 							if (options.onDisposed) options.onDisposed(result);
+/******/ 							doDispose = true;
+/******/ 							break;
+/******/ 						default:
+/******/ 							throw new Error("Unexception type " + result.type);
+/******/ 					}
+/******/ 					if (abortError) {
+/******/ 						return {
+/******/ 							error: abortError
+/******/ 						};
+/******/ 					}
+/******/ 					if (doApply) {
+/******/ 						appliedUpdate[moduleId] = newModuleFactory;
+/******/ 						addAllToSet(outdatedModules, result.outdatedModules);
+/******/ 						for (moduleId in result.outdatedDependencies) {
+/******/ 							if (__webpack_require__.o(result.outdatedDependencies, moduleId)) {
+/******/ 								if (!outdatedDependencies[moduleId])
+/******/ 									outdatedDependencies[moduleId] = [];
+/******/ 								addAllToSet(
+/******/ 									outdatedDependencies[moduleId],
+/******/ 									result.outdatedDependencies[moduleId]
+/******/ 								);
+/******/ 							}
+/******/ 						}
+/******/ 					}
+/******/ 					if (doDispose) {
+/******/ 						addAllToSet(outdatedModules, [result.moduleId]);
+/******/ 						appliedUpdate[moduleId] = warnUnexpectedRequire;
+/******/ 					}
+/******/ 				}
+/******/ 			}
+/******/ 			currentUpdate = undefined;
+/******/ 		
+/******/ 			// Store self accepted outdated modules to require them later by the module system
+/******/ 			var outdatedSelfAcceptedModules = [];
+/******/ 			for (var j = 0; j < outdatedModules.length; j++) {
+/******/ 				var outdatedModuleId = outdatedModules[j];
+/******/ 				var module = __webpack_require__.c[outdatedModuleId];
+/******/ 				if (
+/******/ 					module &&
+/******/ 					(module.hot._selfAccepted || module.hot._main) &&
+/******/ 					// removed self-accepted modules should not be required
+/******/ 					appliedUpdate[outdatedModuleId] !== warnUnexpectedRequire &&
+/******/ 					// when called invalidate self-accepting is not possible
+/******/ 					!module.hot._selfInvalidated
+/******/ 				) {
+/******/ 					outdatedSelfAcceptedModules.push({
+/******/ 						module: outdatedModuleId,
+/******/ 						require: module.hot._requireSelf,
+/******/ 						errorHandler: module.hot._selfAccepted
+/******/ 					});
+/******/ 				}
+/******/ 			}
+/******/ 		
+/******/ 			var moduleOutdatedDependencies;
+/******/ 		
+/******/ 			return {
+/******/ 				dispose: function () {
+/******/ 					currentUpdateRemovedChunks.forEach(function (chunkId) {
+/******/ 						delete installedChunks[chunkId];
+/******/ 					});
+/******/ 					currentUpdateRemovedChunks = undefined;
+/******/ 		
+/******/ 					var idx;
+/******/ 					var queue = outdatedModules.slice();
+/******/ 					while (queue.length > 0) {
+/******/ 						var moduleId = queue.pop();
+/******/ 						var module = __webpack_require__.c[moduleId];
+/******/ 						if (!module) continue;
+/******/ 		
+/******/ 						var data = {};
+/******/ 		
+/******/ 						// Call dispose handlers
+/******/ 						var disposeHandlers = module.hot._disposeHandlers;
+/******/ 						for (j = 0; j < disposeHandlers.length; j++) {
+/******/ 							disposeHandlers[j].call(null, data);
+/******/ 						}
+/******/ 						__webpack_require__.hmrD[moduleId] = data;
+/******/ 		
+/******/ 						// disable module (this disables requires from this module)
+/******/ 						module.hot.active = false;
+/******/ 		
+/******/ 						// remove module from cache
+/******/ 						delete __webpack_require__.c[moduleId];
+/******/ 		
+/******/ 						// when disposing there is no need to call dispose handler
+/******/ 						delete outdatedDependencies[moduleId];
+/******/ 		
+/******/ 						// remove "parents" references from all children
+/******/ 						for (j = 0; j < module.children.length; j++) {
+/******/ 							var child = __webpack_require__.c[module.children[j]];
+/******/ 							if (!child) continue;
+/******/ 							idx = child.parents.indexOf(moduleId);
+/******/ 							if (idx >= 0) {
+/******/ 								child.parents.splice(idx, 1);
+/******/ 							}
+/******/ 						}
+/******/ 					}
+/******/ 		
+/******/ 					// remove outdated dependency from module children
+/******/ 					var dependency;
+/******/ 					for (var outdatedModuleId in outdatedDependencies) {
+/******/ 						if (__webpack_require__.o(outdatedDependencies, outdatedModuleId)) {
+/******/ 							module = __webpack_require__.c[outdatedModuleId];
+/******/ 							if (module) {
+/******/ 								moduleOutdatedDependencies =
+/******/ 									outdatedDependencies[outdatedModuleId];
+/******/ 								for (j = 0; j < moduleOutdatedDependencies.length; j++) {
+/******/ 									dependency = moduleOutdatedDependencies[j];
+/******/ 									idx = module.children.indexOf(dependency);
+/******/ 									if (idx >= 0) module.children.splice(idx, 1);
+/******/ 								}
+/******/ 							}
+/******/ 						}
+/******/ 					}
+/******/ 				},
+/******/ 				apply: function (reportError) {
+/******/ 					// insert new code
+/******/ 					for (var updateModuleId in appliedUpdate) {
+/******/ 						if (__webpack_require__.o(appliedUpdate, updateModuleId)) {
+/******/ 							__webpack_require__.m[updateModuleId] = appliedUpdate[updateModuleId];
+/******/ 						}
+/******/ 					}
+/******/ 		
+/******/ 					// run new runtime modules
+/******/ 					for (var i = 0; i < currentUpdateRuntime.length; i++) {
+/******/ 						currentUpdateRuntime[i](__webpack_require__);
+/******/ 					}
+/******/ 		
+/******/ 					// call accept handlers
+/******/ 					for (var outdatedModuleId in outdatedDependencies) {
+/******/ 						if (__webpack_require__.o(outdatedDependencies, outdatedModuleId)) {
+/******/ 							var module = __webpack_require__.c[outdatedModuleId];
+/******/ 							if (module) {
+/******/ 								moduleOutdatedDependencies =
+/******/ 									outdatedDependencies[outdatedModuleId];
+/******/ 								var callbacks = [];
+/******/ 								var errorHandlers = [];
+/******/ 								var dependenciesForCallbacks = [];
+/******/ 								for (var j = 0; j < moduleOutdatedDependencies.length; j++) {
+/******/ 									var dependency = moduleOutdatedDependencies[j];
+/******/ 									var acceptCallback =
+/******/ 										module.hot._acceptedDependencies[dependency];
+/******/ 									var errorHandler =
+/******/ 										module.hot._acceptedErrorHandlers[dependency];
+/******/ 									if (acceptCallback) {
+/******/ 										if (callbacks.indexOf(acceptCallback) !== -1) continue;
+/******/ 										callbacks.push(acceptCallback);
+/******/ 										errorHandlers.push(errorHandler);
+/******/ 										dependenciesForCallbacks.push(dependency);
+/******/ 									}
+/******/ 								}
+/******/ 								for (var k = 0; k < callbacks.length; k++) {
+/******/ 									try {
+/******/ 										callbacks[k].call(null, moduleOutdatedDependencies);
+/******/ 									} catch (err) {
+/******/ 										if (typeof errorHandlers[k] === "function") {
+/******/ 											try {
+/******/ 												errorHandlers[k](err, {
+/******/ 													moduleId: outdatedModuleId,
+/******/ 													dependencyId: dependenciesForCallbacks[k]
+/******/ 												});
+/******/ 											} catch (err2) {
+/******/ 												if (options.onErrored) {
+/******/ 													options.onErrored({
+/******/ 														type: "accept-error-handler-errored",
+/******/ 														moduleId: outdatedModuleId,
+/******/ 														dependencyId: dependenciesForCallbacks[k],
+/******/ 														error: err2,
+/******/ 														originalError: err
+/******/ 													});
+/******/ 												}
+/******/ 												if (!options.ignoreErrored) {
+/******/ 													reportError(err2);
+/******/ 													reportError(err);
+/******/ 												}
+/******/ 											}
+/******/ 										} else {
+/******/ 											if (options.onErrored) {
+/******/ 												options.onErrored({
+/******/ 													type: "accept-errored",
+/******/ 													moduleId: outdatedModuleId,
+/******/ 													dependencyId: dependenciesForCallbacks[k],
+/******/ 													error: err
+/******/ 												});
+/******/ 											}
+/******/ 											if (!options.ignoreErrored) {
+/******/ 												reportError(err);
+/******/ 											}
+/******/ 										}
+/******/ 									}
+/******/ 								}
+/******/ 							}
+/******/ 						}
+/******/ 					}
+/******/ 		
+/******/ 					// Load self accepted modules
+/******/ 					for (var o = 0; o < outdatedSelfAcceptedModules.length; o++) {
+/******/ 						var item = outdatedSelfAcceptedModules[o];
+/******/ 						var moduleId = item.module;
+/******/ 						try {
+/******/ 							item.require(moduleId);
+/******/ 						} catch (err) {
+/******/ 							if (typeof item.errorHandler === "function") {
+/******/ 								try {
+/******/ 									item.errorHandler(err, {
+/******/ 										moduleId: moduleId,
+/******/ 										module: __webpack_require__.c[moduleId]
+/******/ 									});
+/******/ 								} catch (err2) {
+/******/ 									if (options.onErrored) {
+/******/ 										options.onErrored({
+/******/ 											type: "self-accept-error-handler-errored",
+/******/ 											moduleId: moduleId,
+/******/ 											error: err2,
+/******/ 											originalError: err
+/******/ 										});
+/******/ 									}
+/******/ 									if (!options.ignoreErrored) {
+/******/ 										reportError(err2);
+/******/ 										reportError(err);
+/******/ 									}
+/******/ 								}
+/******/ 							} else {
+/******/ 								if (options.onErrored) {
+/******/ 									options.onErrored({
+/******/ 										type: "self-accept-errored",
+/******/ 										moduleId: moduleId,
+/******/ 										error: err
+/******/ 									});
+/******/ 								}
+/******/ 								if (!options.ignoreErrored) {
+/******/ 									reportError(err);
+/******/ 								}
+/******/ 							}
+/******/ 						}
+/******/ 					}
+/******/ 		
+/******/ 					return outdatedModules;
+/******/ 				}
+/******/ 			};
+/******/ 		}
+/******/ 		__webpack_require__.hmrI.jsonp = function (moduleId, applyHandlers) {
+/******/ 			if (!currentUpdate) {
+/******/ 				currentUpdate = {};
+/******/ 				currentUpdateRuntime = [];
+/******/ 				currentUpdateRemovedChunks = [];
+/******/ 				applyHandlers.push(applyHandler);
+/******/ 			}
+/******/ 			if (!__webpack_require__.o(currentUpdate, moduleId)) {
+/******/ 				currentUpdate[moduleId] = __webpack_require__.m[moduleId];
+/******/ 			}
+/******/ 		};
+/******/ 		__webpack_require__.hmrC.jsonp = function (
+/******/ 			chunkIds,
+/******/ 			removedChunks,
+/******/ 			removedModules,
+/******/ 			promises,
+/******/ 			applyHandlers,
+/******/ 			updatedModulesList
+/******/ 		) {
+/******/ 			applyHandlers.push(applyHandler);
+/******/ 			currentUpdateChunks = {};
+/******/ 			currentUpdateRemovedChunks = removedChunks;
+/******/ 			currentUpdate = removedModules.reduce(function (obj, key) {
+/******/ 				obj[key] = false;
+/******/ 				return obj;
+/******/ 			}, {});
+/******/ 			currentUpdateRuntime = [];
+/******/ 			chunkIds.forEach(function (chunkId) {
+/******/ 				if (
+/******/ 					__webpack_require__.o(installedChunks, chunkId) &&
+/******/ 					installedChunks[chunkId] !== undefined
+/******/ 				) {
+/******/ 					promises.push(loadUpdateChunk(chunkId, updatedModulesList));
+/******/ 					currentUpdateChunks[chunkId] = true;
+/******/ 				} else {
+/******/ 					currentUpdateChunks[chunkId] = false;
+/******/ 				}
+/******/ 			});
+/******/ 			if (__webpack_require__.f) {
+/******/ 				__webpack_require__.f.jsonpHmr = function (chunkId, promises) {
+/******/ 					if (
+/******/ 						currentUpdateChunks &&
+/******/ 						__webpack_require__.o(currentUpdateChunks, chunkId) &&
+/******/ 						!currentUpdateChunks[chunkId]
+/******/ 					) {
+/******/ 						promises.push(loadUpdateChunk(chunkId));
+/******/ 						currentUpdateChunks[chunkId] = true;
+/******/ 					}
+/******/ 				};
+/******/ 			}
+/******/ 		};
+/******/ 		
+/******/ 		__webpack_require__.hmrM = () => {
+/******/ 			if (typeof fetch === "undefined") throw new Error("No browser support: need fetch API");
+/******/ 			return fetch(__webpack_require__.p + __webpack_require__.hmrF()).then((response) => {
+/******/ 				if(response.status === 404) return; // no update available
+/******/ 				if(!response.ok) throw new Error("Failed to fetch update manifest " + response.statusText);
+/******/ 				return response.json();
+/******/ 			});
+/******/ 		};
+/******/ 		
+/******/ 		// no on chunks loaded
+/******/ 		
+/******/ 		// no jsonp function
+/******/ 	})();
+/******/ 	
 /************************************************************************/
 /******/ 	
+/******/ 	// module cache are used so entry inlining is disabled
 /******/ 	// startup
 /******/ 	// Load entry module and return exports
-/******/ 	// This entry module can't be inlined because the eval devtool is used.
 /******/ 	var __webpack_exports__ = __webpack_require__("./src/js/main.js");
 /******/ 	
 /******/ })()
