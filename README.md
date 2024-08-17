@@ -34,8 +34,25 @@ Anton Belev @ [https://belev.me](https://belev.me)
 
 ## Developer docs
 
-### Publishing new version to npm
+### Publishing new version to npm from local
 
+1. Update package version:
+```bash
+npm version patch   # For a small bug fix
+npm version minor   # For a new feature that is backward-compatible
+npm version major   # For breaking changes
+```
+
+2. Test the Package Locally
+Before publishing, it’s a good practice to test your package locally:
+```bash
+npm pack
+```
+
+3. Publish to npm
+```bash
+npm publish
+```
 
 ## License
 MIT
