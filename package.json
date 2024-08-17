@@ -1,6 +1,6 @@
 {
   "name": "beblob",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "This is an open-source widget allowing bloggers to insert comment section to their blogs hosted on GitLab Pages. The comments use GitLab issues underneath.",
   "scripts": {
     "start": "webpack serve --config webpack.config.js --mode development",
