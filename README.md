@@ -55,6 +55,16 @@ npm pack
 npm publish
 ```
 
+## Distribution
+Since BeBlog is published on npm, you can import the script using `unpkg` like so:
+
+```javascript
+<!-- Import the BeBlob library -->
+<script src="https://unpkg.com/beblob@<latest_version>/dist/library.js"></script>
+```
+
+Substitute `<latest_version>` with the version from [npm](https://www.npmjs.com/package/beblob?activeTab=readme)
+
 ## License
 MIT
 
