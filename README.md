@@ -17,6 +17,7 @@ If you found a bug or have an idea for new feature - feel free to raise that as 
 - [X] GitLab API Authentication using [Authorization code with Proof Key for Code Exchange](https://docs.gitlab.com/ee/api/oauth2.html#authorization-code-with-proof-key-for-code-exchange-pkce)
  Create an Issue related to a blog post
 - [X] Ability to add comments to a blog post
+- [ ] Host js file on https://unpkg.com/ or similar
 - [ ] Add styling
 - [ ] Support multiple color schemes from [Cactus](https://probberechts.github.io/hexo-theme-cactus/)
 - [ ] Add linting

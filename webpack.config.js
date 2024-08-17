@@ -7,7 +7,7 @@ module.exports = {
     mode: 'development', // or 'production'
     entry: './src/js/main.js',
     output: {
-        filename: 'bundle.js',
+        filename: 'beblob.js',
         path: path.resolve(__dirname, 'dist'),
     },
     devServer: {
