@@ -1,25 +1,25 @@
 import { Marked } from "marked";
 import { markedHighlight } from "marked-highlight";
-import hljs from 'highlight.js';
+import hljs from "highlight.js";
 import SimpleMDE from "simplemde";
 
 // Define our issue fetch strategies
 const IssueFetchStrategy = {
-  URL: 'url',
-  PAGE_TITLE: 'pageTitle',
-  ISSUE_ID: 'issueId'
+  URL: "url",
+  PAGE_TITLE: "pageTitle",
+  ISSUE_ID: "issueId"
 };
 
 // Use a fixed local storage key for BeBlob
-const LOCAL_STORAGE_KEY = 'beblobAccessToken';
+const LOCAL_STORAGE_KEY = "beblobAccessToken";
 
 // Helper to create a marked instance with syntax highlighting
 function createMarked() {
   const markedInstance = new Marked(
     markedHighlight({
-      langPrefix: 'hljs language-',
+      langPrefix: "hljs language-",
       highlight(code, lang) {
-        const language = hljs.getLanguage(lang) ? lang : 'plaintext';
+        const language = hljs.getLanguage(lang) ? lang : "plaintext";
         return hljs.highlight(code, { language }).value;
       }
     })
@@ -32,7 +32,7 @@ function createMarked() {
   return markedInstance;
 }
 
-// Helper function to inject an external CSS if not already present
+// Helper function to inject an external CSS file if not already present
 function injectCSS(href, id) {
   if (!document.getElementById(id)) {
     const link = document.createElement("link");
@@ -48,7 +48,7 @@ function injectCSS(href, id) {
 
 // Function to inject all required CSS files
 function injectBeBlobCSS() {
-  injectCSS("https://unpkg.com/beblob@1.1.0/dist/css/styles.css", "beblob-css");
+  injectCSS("https://unpkg.com/beblob@1.0.3/dist/css/styles.css", "beblob-css");
   injectCSS("https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css", "hljs-css");
   injectCSS("https://cdn.jsdelivr.net/simplemde/latest/simplemde.min.css", "simplemde-css");
 }
@@ -59,9 +59,10 @@ function injectBeBlobUI() {
   if (container) {
     container.innerHTML = `
       <div class="beblob-widget">
+        <h1>GitLab Issues</h1>
         <div class="gitlab-button-container">
           <button id="authButton" class="gitlab-button">
-            <img src="https://unpkg.com/beblob@1.1.0/dist/images/gitlab-logo-500.svg" alt="GitLab Logo" class="gitlab-logo">
+            <img src="https://unpkg.com/beblob@1.0.3/dist/images/gitlab-logo-500.svg" alt="GitLab Logo" class="gitlab-logo">
             Authenticate with GitLab
           </button>
         </div>
@@ -89,6 +90,35 @@ function injectBeBlobUI() {
     console.log("BeBlob: UI injected into #beblob_thread");
   } else {
     console.error("BeBlob: Container #beblob_thread not found. Please include <div id='beblob_thread'></div> in your HTML.");
+  }
+}
+
+// New: Create an issue if none is found
+async function createIssue(accessToken, title, description) {
+  console.log("BeBlob: Creating new issue with title:", title);
+  try {
+    const apiUrl = `https://gitlab.com/api/v4/projects/${window.projectId}/issues`;
+    const body = {
+      title: title,
+      description: description || ""
+    };
+    const response = await fetch(apiUrl, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${accessToken}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(body)
+    });
+    if (!response.ok) {
+      throw new Error("Failed to create issue, status: " + response.status);
+    }
+    const issue = await response.json();
+    console.log("BeBlob: Issue created successfully", issue);
+    return issue;
+  } catch (error) {
+    console.error("BeBlob error creating issue:", error);
+    return null;
   }
 }
 
@@ -130,13 +160,10 @@ export async function init(config) {
   });
   console.log("BeBlob: SimpleMDE editor initialized");
 
-  // --- OAuth handling with static callback URL and state parameter ---
-
-  // Use the static callback URL from config (e.g., "http://localhost:4000/")
-  // and pass the original URL as state.
+  // --- OAuth Handling with Static Callback URL & State Parameter ---
   function authenticateWithGitLab() {
-    const staticRedirectUri = config.redirectUri; // should be "http://localhost:4000/"
-    const originalUrl = window.location.href; // the current page URL
+    const staticRedirectUri = config.redirectUri; // e.g. "http://localhost:4000/"
+    const originalUrl = window.location.href; // current page URL
     const state = encodeURIComponent(originalUrl);
     const oauthUrl = `https://gitlab.com/oauth/authorize?client_id=${config.clientId}&redirect_uri=${encodeURIComponent(staticRedirectUri)}&response_type=code&state=${state}`;
     console.log("BeBlob: Redirecting to GitLab OAuth:", oauthUrl);
@@ -144,46 +171,45 @@ export async function init(config) {
   }
 
   function showAuthButton() {
-    const authButtonContainer = document.querySelector('.gitlab-button-container');
+    const authButtonContainer = document.querySelector(".gitlab-button-container");
     if (authButtonContainer) {
-      authButtonContainer.style.display = 'block';
+      authButtonContainer.style.display = "block";
       console.log("BeBlob: Auth button displayed");
     }
   }
 
   function hideAuthButton() {
-    const authButtonContainer = document.querySelector('.gitlab-button-container');
+    const authButtonContainer = document.querySelector(".gitlab-button-container");
     if (authButtonContainer) {
-      authButtonContainer.style.display = 'none';
+      authButtonContainer.style.display = "none";
       console.log("BeBlob: Auth button hidden");
     }
   }
 
   async function requestAccessToken(code) {
     console.log("BeBlob: Requesting access token...");
-    const tokenUrl = 'https://gitlab.com/oauth/token';
-    // Use the static redirect URL for token request too
+    const tokenUrl = "https://gitlab.com/oauth/token";
     const params = {
       client_id: config.clientId,
       code: code,
-      grant_type: 'authorization_code',
+      grant_type: "authorization_code",
       redirect_uri: config.redirectUri
     };
     try {
       const response = await fetch(tokenUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(params)
       });
-      if (!response.ok) throw new Error('Failed to get access token');
+      if (!response.ok) throw new Error("Failed to get access token");
       const data = await response.json();
       const accessToken = data.access_token;
       localStorage.setItem(LOCAL_STORAGE_KEY, accessToken);
       console.log("BeBlob: Access token received");
       hideAuthButton();
-      await fetchProjectId(accessToken);
+      await fetchIssuesByCriteria(accessToken, config.issueMappingStrategy);
     } catch (error) {
-      console.error('BeBlob error requesting access token:', error);
+      console.error("BeBlob error requesting access token:", error);
     }
   }
 
@@ -192,23 +218,58 @@ export async function init(config) {
     try {
       const projectsUrl = `https://gitlab.com/api/v4/projects?search=${encodeURIComponent(config.projectName)}`;
       const response = await fetch(projectsUrl, {
-        headers: { 'Authorization': `Bearer ${accessToken}` }
+        headers: { "Authorization": `Bearer ${accessToken}` }
       });
       if (!response.ok) {
         if (response.status === 401) {
           localStorage.removeItem(LOCAL_STORAGE_KEY);
           showAuthButton();
         }
-        throw new Error('Failed to fetch projects');
+        throw new Error("Failed to fetch projects");
       }
       const projects = await response.json();
       const project = projects.find(p => p.name === config.projectName);
       if (!project) throw new Error(`Project "${config.projectName}" not found`);
       window.projectId = project.id;
       console.log("BeBlob: Project ID found:", window.projectId);
-      await fetchIssuesByCriteria(accessToken, IssueFetchStrategy.ISSUE_ID);
+      await fetchIssuesByCriteria(accessToken, config.issueMappingStrategy);
     } catch (error) {
-      console.error('BeBlob error fetching project ID:', error);
+      console.error("BeBlob error fetching project ID:", error);
+    }
+  }
+
+  // Updated fetchIssuesByCriteria now uses the provided mapping strategy.
+  async function fetchIssuesByCriteria(accessToken, fetchStrategy) {
+    console.log("BeBlob: Fetching issues by criteria", fetchStrategy);
+    try {
+      showLoadingOverlay();
+      let issue = null;
+      if (fetchStrategy === IssueFetchStrategy.URL) {
+        issue = await fetchGitLabIssue(window.projectId, accessToken, IssueFetchStrategy.URL, window.location.href);
+      } else if (fetchStrategy === IssueFetchStrategy.PAGE_TITLE) {
+        issue = await fetchGitLabIssue(window.projectId, accessToken, IssueFetchStrategy.PAGE_TITLE, document.title);
+      } else if (fetchStrategy === IssueFetchStrategy.ISSUE_ID) {
+        if (!config.issueId) {
+          console.error("BeBlob error: issueMappingStrategy is 'issueId' but no issueId was provided in configuration.");
+          throw new Error("Missing required configuration: issueId");
+        }
+        issue = await fetchGitLabIssue(window.projectId, accessToken, IssueFetchStrategy.ISSUE_ID, config.issueId);
+      } else {
+        console.error("BeBlob error: Invalid fetch strategy");
+      }
+      // If no issue is found and strategy is URL or pageTitle, create one.
+      if (!issue && (fetchStrategy === IssueFetchStrategy.URL || fetchStrategy === IssueFetchStrategy.PAGE_TITLE)) {
+        console.log("BeBlob: No issue found. Creating a new issue...");
+        issue = await createIssue(accessToken, document.title, "Automatically created by BeBlob.");
+        if (issue) {
+          window.currentIssueId = issue.iid;
+          await displayIssue(issue, accessToken);
+        }
+      }
+    } catch (error) {
+      console.error("BeBlob error fetching issues by criteria:", error);
+    } finally {
+      hideLoadingOverlay();
     }
   }
 
@@ -219,48 +280,40 @@ export async function init(config) {
       if (fetchType === IssueFetchStrategy.URL) {
         apiUrl += `?search=${encodeURIComponent(fetchParam)}`;
       } else if (fetchType === IssueFetchStrategy.PAGE_TITLE) {
-        apiUrl += `?search=${encodeURIComponent(fetchParam.split('/').pop())}`;
+        apiUrl += `?search=${encodeURIComponent(fetchParam.split("/").pop())}`;
       } else if (fetchType === IssueFetchStrategy.ISSUE_ID) {
         apiUrl = `https://gitlab.com/api/v4/projects/${projectId}/issues/${fetchParam}`;
       }
       const response = await fetch(apiUrl, {
-        headers: { 'Authorization': `Bearer ${accessToken}` }
+        headers: { "Authorization": `Bearer ${accessToken}` }
       });
       if (!response.ok) {
         if (response.status === 401) {
           localStorage.removeItem(LOCAL_STORAGE_KEY);
         }
-        throw new Error('Failed to fetch issues, status: ' + response.status);
+        throw new Error("Failed to fetch issues, status: " + response.status);
       }
-      const issueJson = await response.json();
-      window.currentIssueId = issueJson.iid;
-      console.log("BeBlob: Issue fetched, currentIssueId:", window.currentIssueId);
-      await displayIssue(issueJson, accessToken);
-    } catch (error) {
-      console.error('BeBlob error fetching issue:', error);
-    }
-  }
-
-  async function fetchIssuesByCriteria(accessToken, fetchStrategy) {
-    console.log("BeBlob: Fetching issues by criteria", fetchStrategy);
-    try {
-      showLoadingOverlay();
-      const currentUrl = window.location.href;
-      const currentUrlTitle = document.title;
-      const issueId = '1';
-      if (fetchStrategy === IssueFetchStrategy.URL) {
-        await fetchGitLabIssue(window.projectId, accessToken, IssueFetchStrategy.URL, currentUrl);
-      } else if (fetchStrategy === IssueFetchStrategy.PAGE_TITLE) {
-        await fetchGitLabIssue(window.projectId, accessToken, IssueFetchStrategy.PAGE_TITLE, currentUrlTitle);
-      } else if (fetchStrategy === IssueFetchStrategy.ISSUE_ID) {
-        await fetchGitLabIssue(window.projectId, accessToken, IssueFetchStrategy.ISSUE_ID, issueId);
+      const data = await response.json();
+      let issueJson = null;
+      if (Array.isArray(data)) {
+        if (data.length > 0) {
+          issueJson = data[0]; // use first matching issue
+        }
       } else {
-        console.error('BeBlob error: Invalid fetch strategy');
+        issueJson = data;
+      }
+      if (issueJson) {
+        window.currentIssueId = issueJson.iid;
+        console.log("BeBlob: Issue fetched, currentIssueId:", window.currentIssueId);
+        await displayIssue(issueJson, accessToken);
+        return issueJson;
+      } else {
+        console.log("BeBlob: No matching issue found.");
+        return null;
       }
     } catch (error) {
-      console.error('BeBlob error fetching issues by criteria:', error);
-    } finally {
-      hideLoadingOverlay();
+      console.error("BeBlob error fetching issue:", error);
+      return null;
     }
   }
 
@@ -268,40 +321,40 @@ export async function init(config) {
     console.log("BeBlob: Fetching discussions for issue", issueIid);
     try {
       const response = await fetch(`https://gitlab.com/api/v4/projects/${window.projectId}/issues/${issueIid}/discussions`, {
-        headers: { 'Authorization': `Bearer ${accessToken}` }
+        headers: { "Authorization": `Bearer ${accessToken}` }
       });
       if (!response.ok) {
         if (response.status === 401) {
           localStorage.removeItem(LOCAL_STORAGE_KEY);
         }
-        throw new Error('Failed to fetch discussions for issue');
+        throw new Error("Failed to fetch discussions for issue");
       }
       return await response.json();
     } catch (error) {
-      console.error('BeBlob error fetching discussions:', error);
+      console.error("BeBlob error fetching discussions:", error);
       return [];
     }
   }
 
   async function displayIssue(issue, accessToken) {
     console.log("BeBlob: Displaying issue", issue);
-    const issuesContainer = document.getElementById('issuesContainer');
-    issuesContainer.innerHTML = '';
+    const issuesContainer = document.getElementById("issuesContainer");
+    issuesContainer.innerHTML = "";
     if (!issue) {
-      const errorMessage = document.createElement('div');
-      errorMessage.textContent = 'Failed to fetch GitLab issue.';
+      const errorMessage = document.createElement("div");
+      errorMessage.textContent = "Failed to fetch GitLab issue.";
       issuesContainer.appendChild(errorMessage);
       return;
     }
-    const totalComments = issue.user_notes_count;
-    const commentsLabel = document.createElement('div');
-    commentsLabel.classList.add('comments-label');
-    commentsLabel.innerHTML = `${totalComments} Comments - <a href="https://gitlab.com/antonbelev/beblob" target="_blank">powered by BeBlob</a>`;
+    const commentsCount = (issue.user_notes_count !== undefined) ? issue.user_notes_count : 0;
+    const commentsLabel = document.createElement("div");
+    commentsLabel.classList.add("comments-label");
+    commentsLabel.innerHTML = `${commentsCount} Comments - <a href="https://gitlab.com/antonbelev/beblob" target="_blank">powered by BeBlob</a>`;
     issuesContainer.appendChild(commentsLabel);
-    const issueElement = document.createElement('div');
-    issueElement.classList.add('issue');
-    const descriptionElement = document.createElement('div');
-    descriptionElement.classList.add('issue-description');
+    const issueElement = document.createElement("div");
+    issueElement.classList.add("issue");
+    const descriptionElement = document.createElement("div");
+    descriptionElement.classList.add("issue-description");
     descriptionElement.textContent = issue.title;
     issueElement.appendChild(descriptionElement);
     const discussions = await fetchIssueDiscussions(issue.iid, accessToken);
@@ -315,8 +368,8 @@ export async function init(config) {
       });
     }
     if (discussions.length === 0) {
-      const noCommentsElement = document.createElement('div');
-      noCommentsElement.textContent = 'No comments';
+      const noCommentsElement = document.createElement("div");
+      noCommentsElement.textContent = "No comments yet. Be the first to share what you think!";
       issueElement.appendChild(noCommentsElement);
     }
     issuesContainer.appendChild(issueElement);
@@ -324,41 +377,41 @@ export async function init(config) {
   }
 
   function createCommentElement(comment, isIndented) {
-    const commentElement = document.createElement('div');
-    commentElement.classList.add('comment');
+    const commentElement = document.createElement("div");
+    commentElement.classList.add("comment");
     if (isIndented) {
-      commentElement.style.marginLeft = '30px';
+      commentElement.style.marginLeft = "30px";
     }
-    const headerElement = document.createElement('div');
-    headerElement.classList.add('comment-header');
-    const authorAvatar = document.createElement('img');
+    const headerElement = document.createElement("div");
+    headerElement.classList.add("comment-header");
+    const authorAvatar = document.createElement("img");
     authorAvatar.src = comment.author.avatar_url;
     authorAvatar.alt = comment.author.name;
     headerElement.appendChild(authorAvatar);
-    const authorInfo = document.createElement('div');
-    authorInfo.classList.add('author-info');
-    const authorLink = document.createElement('a');
+    const authorInfo = document.createElement("div");
+    authorInfo.classList.add("author-info");
+    const authorLink = document.createElement("a");
     authorLink.href = comment.author.web_url;
     authorLink.textContent = comment.author.name;
-    authorLink.classList.add('author-name');
+    authorLink.classList.add("author-name");
     authorInfo.appendChild(authorLink);
-    const commentedOn = document.createElement('span');
-    commentedOn.classList.add('commented-on');
-    commentedOn.textContent = ' commented on ';
+    const commentedOn = document.createElement("span");
+    commentedOn.classList.add("commented-on");
+    commentedOn.textContent = " commented on ";
     authorInfo.appendChild(commentedOn);
-    const timestamp = document.createElement('span');
-    timestamp.classList.add('comment-timestamp');
+    const timestamp = document.createElement("span");
+    timestamp.classList.add("comment-timestamp");
     const commentDate = new Date(comment.created_at);
-    timestamp.textContent = commentDate.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
+    timestamp.textContent = commentDate.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric"
     });
     authorInfo.appendChild(timestamp);
     headerElement.appendChild(authorInfo);
     commentElement.appendChild(headerElement);
-    const bodyElement = document.createElement('div');
-    bodyElement.classList.add('comment-body');
+    const bodyElement = document.createElement("div");
+    bodyElement.classList.add("comment-body");
     bodyElement.innerHTML = markedInstance.parse(comment.body);
     commentElement.appendChild(bodyElement);
     return commentElement;
@@ -367,54 +420,54 @@ export async function init(config) {
   async function fetchCurrentUser(accessToken) {
     console.log("BeBlob: Fetching current user...");
     try {
-      const currentUserUrl = 'https://gitlab.com/api/v4/user';
+      const currentUserUrl = "https://gitlab.com/api/v4/user";
       const response = await fetch(currentUserUrl, {
-        headers: { 'Authorization': `Bearer ${accessToken}` }
+        headers: { "Authorization": `Bearer ${accessToken}` }
       });
       if (!response.ok) {
         if (response.status === 401) {
           localStorage.removeItem(LOCAL_STORAGE_KEY);
         }
-        throw new Error('Failed to fetch current user');
+        throw new Error("Failed to fetch current user");
       }
       const user = await response.json();
       console.log("BeBlob: Current user fetched", user);
       return user;
     } catch (error) {
-      console.error('BeBlob error fetching current user:', error);
+      console.error("BeBlob error fetching current user:", error);
       return null;
     }
   }
 
   function displayCurrentUserAvatar(user) {
     console.log("BeBlob: Displaying current user avatar");
-    const currentUserAvatarContainer = document.createElement('div');
-    currentUserAvatarContainer.classList.add('current-user-avatar-container');
-    const avatarImg = document.createElement('img');
+    const currentUserAvatarContainer = document.createElement("div");
+    currentUserAvatarContainer.classList.add("current-user-avatar-container");
+    const avatarImg = document.createElement("img");
     avatarImg.src = user.avatar_url;
     avatarImg.alt = user.name;
     currentUserAvatarContainer.appendChild(avatarImg);
-    const bubbleElement = document.createElement('div');
-    bubbleElement.classList.add('bubble');
+    const bubbleElement = document.createElement("div");
+    bubbleElement.classList.add("bubble");
     currentUserAvatarContainer.appendChild(bubbleElement);
-    const textareaContainer = document.querySelector('.comment-textarea-container');
+    const textareaContainer = document.querySelector(".comment-textarea-container");
     if (textareaContainer) {
       textareaContainer.insertBefore(currentUserAvatarContainer, textareaContainer.firstChild);
     }
   }
 
   function showLoadingOverlay() {
-    const overlay = document.getElementById('overlay');
+    const overlay = document.getElementById("overlay");
     if (overlay) {
-      overlay.style.display = 'flex';
+      overlay.style.display = "flex";
       console.log("BeBlob: Showing loading overlay");
     }
   }
 
   function hideLoadingOverlay() {
-    const overlay = document.getElementById('overlay');
+    const overlay = document.getElementById("overlay");
     if (overlay) {
-      overlay.style.display = 'none';
+      overlay.style.display = "none";
       console.log("BeBlob: Hiding loading overlay");
     }
   }
@@ -436,7 +489,7 @@ export async function init(config) {
     if (tabButton) {
       tabButton.classList.add("active");
     }
-    if (tabName === 'Preview') {
+    if (tabName === "Preview") {
       updatePreview();
     }
     console.log("BeBlob: Opened tab:", tabName);
@@ -456,18 +509,18 @@ export async function init(config) {
     try {
       const apiUrl = `https://gitlab.com/api/v4/projects/${window.projectId}/issues/${window.currentIssueId}/notes`;
       const response = await fetch(apiUrl, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'Content-Type': 'application/json'
+          "Authorization": `Bearer ${accessToken}`,
+          "Content-Type": "application/json"
         },
         body: JSON.stringify({ body: commentBody })
       });
-      if (!response.ok) throw new Error('Failed to add comment to issue');
+      if (!response.ok) throw new Error("Failed to add comment to issue");
       console.log("BeBlob: Comment added successfully");
       return await response.json();
     } catch (error) {
-      console.error('BeBlob error adding comment:', error);
+      console.error("BeBlob error adding comment:", error);
     }
   }
 
@@ -488,17 +541,17 @@ export async function init(config) {
       }
       await addCommentToIssue(storedToken, newComment);
       simplemde.value("");
-      await fetchIssuesByCriteria(storedToken, IssueFetchStrategy.ISSUE_ID);
+      await fetchIssuesByCriteria(storedToken, config.issueMappingStrategy);
     });
   } else {
     console.error("BeBlob error: 'Add Comment' button not found");
   }
 
-  const tablinks = document.querySelectorAll('.tablinks');
+  const tablinks = document.querySelectorAll(".tablinks");
   if (tablinks) {
     tablinks.forEach(tab => {
-      tab.addEventListener('click', () => {
-        const tabName = tab.getAttribute('data-tab');
+      tab.addEventListener("click", () => {
+        const tabName = tab.getAttribute("data-tab");
         openTab(tabName);
       });
     });
@@ -507,10 +560,10 @@ export async function init(config) {
     console.error("BeBlob error: No tab links found");
   }
 
-  const authButton = document.getElementById('authButton');
+  const authButton = document.getElementById("authButton");
   if (authButton) {
-    authButton.style.display = 'block';
-    authButton.addEventListener('click', authenticateWithGitLab);
+    authButton.style.display = "block";
+    authButton.addEventListener("click", authenticateWithGitLab);
     console.log("BeBlob: Auth button event listener attached");
   } else {
     console.error("BeBlob error: Auth button not found");
@@ -532,22 +585,25 @@ export async function init(config) {
 
   async function handleGitLabRedirect() {
     const urlParams = new URLSearchParams(window.location.search);
-    const code = urlParams.get('code');
-    const state = urlParams.get('state');
+    const code = urlParams.get("code");
+    const state = urlParams.get("state");
     if (code) {
       console.log("BeBlob: Handling GitLab redirect with code:", code);
       await requestAccessToken(code);
       if (state) {
         const originalUrl = decodeURIComponent(state);
-        console.log("BeBlob: Redirecting back to original URL:", originalUrl);
-        window.location.href = originalUrl;
+        // Append the code parameter so the original page can process it
+        const separator = originalUrl.includes("?") ? "&" : "?";
+        const redirectUrl = originalUrl + separator + "code=" + encodeURIComponent(code);
+        console.log("BeBlob: Redirecting back to original page with code:", redirectUrl);
+        window.location.href = redirectUrl;
       }
     }
   }
 
   async function checkForOAuthRedirect() {
     const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.has('code')) {
+    if (urlParams.has("code")) {
       await handleGitLabRedirect();
     }
   }
@@ -557,14 +613,15 @@ export async function init(config) {
 }
 
 // Auto-initialize by reading configuration from the script tag with ID 'beblob-script'
-document.addEventListener('DOMContentLoaded', () => {
-  const script = document.getElementById('beblob-script');
+document.addEventListener("DOMContentLoaded", () => {
+  const script = document.getElementById("beblob-script");
   if (script && script.dataset) {
     const autoConfig = {
       clientId: script.dataset.clientId,
       redirectUri: script.dataset.redirectUri,
       projectName: script.dataset.projectName,
-      issueMappingStrategy: script.dataset.issueMappingStrategy
+      issueMappingStrategy: script.dataset.issueMappingStrategy,
+      issueId: script.dataset.issueId // Optional; required only if mapping strategy is "issueId"
     };
     if (
       !autoConfig.clientId ||
