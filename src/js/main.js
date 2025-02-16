@@ -57,25 +57,37 @@ function injectCSS(href, id) {
   }
 }
 
-// Function to inject all required CSS files
-function injectBeBlobCSS() {
-  injectCSS("https://unpkg.com/beblob@1.2.0/dist/css/styles.css", "beblob-css");
-  injectCSS("/css/beblob.css", "beblob-css");
-  injectCSS("https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css", "hljs-css");
-  injectCSS("https://cdn.jsdelivr.net/simplemde/latest/simplemde.min.css", "simplemde-css");
+// Helper: return asset URL based on config.devMode. For production, it returns a URL from unpkg using the specified version.
+function getAssetUrl(path, config) {
+  if (config.devMode === "true" || config.devMode === true) {
+    return `/${path}`;  // Assumes local files are served from the root.
+  } else {
+    return `https://unpkg.com/beblob@${config.beblobVersion}/dist/${path}`;
+  }
 }
 
-// Function to inject the UI into the designated container (#beblob_thread)
-// The reactions container is placed above the issue details.
-function injectBeBlobUI() {
+function injectBeBlobCSS(config) {
+// For local development, use the local CSS file.
+    if (config.devMode === "true" || config.devMode === true) {
+        injectCSS("/css/styles.css", "beblob-css");
+    } else {
+        // In production, load the CSS from unpkg.com using the specified version.
+        injectCSS(getAssetUrl("css/styles.css", config), "beblob-css");
+    }
+    injectCSS("https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css", "hljs-css");
+    injectCSS("https://cdn.jsdelivr.net/simplemde/latest/simplemde.min.css", "simplemde-css");
+}
+
+// Function to inject the UI into #beblob_thread
+function injectBeBlobUI(config) {
   const container = document.getElementById("beblob_thread");
   if (container) {
     container.innerHTML = `
       <div class="beblob-widget">
-        <h1>Comments </h1>
+        <h1>GitLab Issues</h1>
         <div class="gitlab-button-container">
           <button id="authButton" class="gl-button">
-            <img src="https://unpkg.com/beblob@1.2.0/dist/images/gitlab-logo-500.svg" alt="GitLab Logo" class="gitlab-logo">
+            <img src="${getAssetUrl('images/gitlab-logo-500.svg', config)}" alt="GitLab Logo" class="gitlab-logo">
             Authenticate with GitLab
           </button>
         </div>
@@ -89,7 +101,7 @@ function injectBeBlobUI() {
         </div>
         <div class="comment-textarea-container">
           <div class="tab">
-            <button class="tablinks gl-button" data-tab="Markdown">Write</button>
+            <button class="tablinks gl-button" data-tab="Markdown">Markdown</button>
             <button class="tablinks gl-button" data-tab="Preview">Preview</button>
           </div>
           <div id="Markdown" class="tabcontent">
@@ -108,7 +120,13 @@ function injectBeBlobUI() {
   }
 }
 
-// Create an issue if none is found (for URL or pageTitle strategies)
+// ... [Rest of the code remains largely unchanged.]
+// (For brevity, the functions for createIssue, fetchReactions, addReaction, removeReaction, toggleReaction, renderReactions, displayIssue, createCommentElement, fetchCurrentUser, displayCurrentUserAvatar, showLoadingOverlay, hideLoadingOverlay, openTab, updatePreview, addCommentToIssue, and OAuth handling remain the same as in your previous version, with one change in renderBeBlobUI() and injectBeBlobCSS() using getAssetUrl().)
+
+//
+// --- Below is the same as previously, but with updated asset URL calls in injectBeBlobCSS and injectBeBlobUI ---
+//
+
 async function createIssue(accessToken, title, description) {
   console.log("BeBlob: Creating new issue with title:", title);
   try {
@@ -134,7 +152,6 @@ async function createIssue(accessToken, title, description) {
   }
 }
 
-// Fetch reactions (award emoji) for an issue
 async function fetchReactions(accessToken, issueIid) {
   console.log("BeBlob: Fetching reactions for issue", issueIid);
   try {
@@ -154,7 +171,6 @@ async function fetchReactions(accessToken, issueIid) {
   }
 }
 
-// Add a reaction for an issue
 async function addReaction(accessToken, issueIid, reactionName) {
   console.log("BeBlob: Adding reaction", reactionName, "to issue", issueIid);
   try {
@@ -179,7 +195,6 @@ async function addReaction(accessToken, issueIid, reactionName) {
   }
 }
 
-// Remove a reaction using the DELETE API
 async function removeReaction(accessToken, issueIid, awardId) {
   console.log("BeBlob: Removing reaction, awardId:", awardId);
   try {
@@ -199,13 +214,11 @@ async function removeReaction(accessToken, issueIid, awardId) {
   }
 }
 
-// Toggle a reaction: if the current user already reacted with 'name', remove it; otherwise, add it.
 async function toggleReaction(name, accessToken, issueIid) {
   if (!window.currentUser) {
     await fetchCurrentUser(accessToken);
   }
   const updatedReactions = await fetchReactions(accessToken, issueIid);
-  // Compare currentUser.id with r.user.id
   const existing = updatedReactions.find(r => r.name === name && r.user && r.user.id === window.currentUser.id);
   if (existing) {
     await removeReaction(accessToken, issueIid, existing.id);
@@ -228,8 +241,6 @@ async function toggleReaction(name, accessToken, issueIid) {
   renderReactions(newReactions, accessToken, issueIid);
 }
 
-// Render reactions using our own styles for buttons.
-// The reactions section is centered and placed above the issue details.
 function renderReactions(reactions, accessToken, issueIid) {
   const container = document.getElementById("reactionsContainer");
   if (!container) {
@@ -238,11 +249,9 @@ function renderReactions(reactions, accessToken, issueIid) {
   }
   container.innerHTML = "";
   
-  // Create a centered container for reaction buttons.
   const centerDiv = document.createElement("div");
   centerDiv.className = "reactions-center";
   
-  // Group reactions by name and determine if the current user has reacted.
   let reactionData = {};
   reactions.forEach(r => {
     const name = r.name;
@@ -255,7 +264,6 @@ function renderReactions(reactions, accessToken, issueIid) {
     }
   });
   
-  // Render default reactions: thumbsup and thumbsdown (always show)
   ["thumbsup", "thumbsdown"].forEach(name => {
     const data = reactionData[name] || { count: 0, myAwardId: null };
     const btn = document.createElement("button");
@@ -267,7 +275,6 @@ function renderReactions(reactions, accessToken, issueIid) {
     centerDiv.appendChild(btn);
   });
   
-  // Render any additional reaction types that have been used (with count > 0)
   Object.keys(reactionData).forEach(name => {
     if (name !== "thumbsup" && name !== "thumbsdown" && reactionData[name].count > 0) {
       const data = reactionData[name];
@@ -281,7 +288,6 @@ function renderReactions(reactions, accessToken, issueIid) {
     }
   });
   
-  // Add a toggle button for the full reaction menu using the provided SVG icon.
   const toggleBtn = document.createElement("button");
   toggleBtn.className = "reaction-toggle-btn";
   toggleBtn.innerHTML = `<span class="gl-button-text">
@@ -294,7 +300,6 @@ function renderReactions(reactions, accessToken, issueIid) {
   container.innerHTML = "";
   container.appendChild(centerDiv);
   
-  // Create (or get) the popup element for the full reaction menu.
   let popup = document.getElementById("reaction-popup");
   if (!popup) {
     popup = document.createElement("div");
@@ -330,8 +335,7 @@ function renderReactions(reactions, accessToken, issueIid) {
   console.log("BeBlob: Reactions rendered");
 }
 
-// Main initialization function.
-export async function init(config) {
+async function init(config) {
   console.log("BeBlob: Starting initialization...");
   if (
     !config ||
@@ -345,9 +349,9 @@ export async function init(config) {
   }
   console.log("BeBlob: Config validated", config);
   
-  // Inject CSS and UI
-  injectBeBlobCSS();
-  injectBeBlobUI();
+  // Inject CSS and UI using our config
+  injectBeBlobCSS(config);
+  injectBeBlobUI(config);
   
   const markedInstance = createMarked();
   
@@ -363,7 +367,7 @@ export async function init(config) {
     renderingConfig: { codeSyntaxHighlighting: true },
     tabSize: 4,
   });
-  console.log("BeBlob: Simplemde editor initialized");
+  console.log("BeBlob: SimpleMDE editor initialized");
   
   // --- OAuth Handling with Static Callback URL & State Parameter ---
   function authenticateWithGitLab() {
@@ -576,7 +580,6 @@ export async function init(config) {
       issueElement.appendChild(noCommentsElement);
     }
     issuesContainer.appendChild(issueElement);
-    // Fetch and render reactions above the issue details.
     const reactions = await fetchReactions(accessToken, issue.iid);
     renderReactions(reactions, accessToken, issue.iid);
     console.log("BeBlob: Issue display complete");
@@ -827,7 +830,9 @@ document.addEventListener("DOMContentLoaded", () => {
       redirectUri: script.dataset.redirectUri,
       projectName: script.dataset.projectName,
       issueMappingStrategy: script.dataset.issueMappingStrategy,
-      issueId: script.dataset.issueId // Optional; required only if mapping strategy is "issueId"
+      issueId: script.dataset.issueId, // Optional; required only if mapping strategy is "issueId"
+      devMode: script.dataset.devMode,   // "true" or "false"
+      beblobVersion: script.dataset.beblobVersion  // e.g., "1.2.0"
     };
     if (
       !autoConfig.clientId ||
