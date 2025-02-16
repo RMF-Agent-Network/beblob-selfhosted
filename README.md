@@ -152,9 +152,11 @@ BeBlob has been inspired by similar tools for GitHub, such as [giscus](https://g
 If you found a bug or have an idea for a new feature, feel free to raise an issue [here](https://gitlab.com/antonbelev/beblob/-/issues) and add as much detail as possible.
 
 ## Roadmap
-- [ ] Ability to manage comments
-- [ ] Add multiple themes
-- [ ] Investigate direct support in hexo as a plugin
+- [ ] Ability to manage comments (edit, delete, and moderate)
+- [ ] Reactions should be controlled by a configuration allowing clients to decide if they want to include that feature
+- [ ] Add multiple themes and customizable UI options (fonts, colors, layouts)
+- [ ] Investigate direct support in Hexo as a plugin
+- [ ] Threaded/nested replies for richer discussion structures
 
 ## Developer docs
 
