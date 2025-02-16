@@ -1,296 +1,301 @@
 body {
-    font-family: Arial, sans-serif;
-    padding: 20px;
+  font-family: Arial, sans-serif;
+  padding: 20px;
 }
 .issue {
-    margin-bottom: 20px;
-    border: 1px solid #ccc;
-    padding: 10px;
+  margin-bottom: 20px;
+  border: 1px solid #ccc;
+  padding: 10px;
 }
 .issue-description {
-    font-weight: bold;
-    margin-bottom: 10px;
+  font-weight: bold;
+  margin-bottom: 10px;
 }
 
 /* Updated CSS for comment styling */
 .comment {
-    margin-bottom: 20px;
-    padding: 15px;
-    border: 1px solid #dcdcde;
-    border-radius: 4px;
-    background-color: #f6f8fa; /* Light gray background */
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+  padding: 15px;
+  border: 1px solid #dcdcde;
+  border-radius: 4px;
+  background-color: #f6f8fa; /* Light gray background */
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .comment-header {
-    display: flex;
-    align-items: center;
-    margin-bottom: 10px;
-    padding-bottom: 10px;
-    border-bottom: 1px solid #dcdcde;
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #dcdcde;
 }
 
 .comment-header img {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    margin-right: 10px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  margin-right: 10px;
 }
 
 /* Updated CSS for comment author info */
 .comment-header .author-info {
-    display: flex;
-    align-items: center;
-    padding-bottom: 5px; /* Add padding to the bottom */
+  display: flex;
+  align-items: center;
+  padding-bottom: 5px; /* Add padding to the bottom */
 }
 
 .comment-header .author-info .author-name {
-    font-weight: bold;
-    color: #007bff; /* Blue for author name */
-    text-decoration: none;
-    margin-right: 5px;
+  font-weight: bold;
+  color: #007bff; /* Blue for author name */
+  text-decoration: none;
+  margin-right: 5px;
 }
 
 .comment-header .author-info .author-name:hover {
-    text-decoration: underline;
+  text-decoration: underline;
 }
 
 .comment-header .author-info .commented-on {
-    margin-right: 5px;
+  margin-right: 5px;
 }
 
 .comment-header .author-info .comment-timestamp {
-    color: #6a737d; /* Gray for timestamp */
+  color: #6a737d; /* Gray for timestamp */
 }
 
 /* CSS for comments label */
 .comments-label {
-    margin-bottom: 10px;
-    font-size: 16px;
-    font-weight: bold;
-    color: #333238; /* Dark gray for label */
+  margin-bottom: 10px;
+  font-size: 16px;
+  font-weight: bold;
+  color: #333238; /* Dark gray for label */
 }
 
 /* CSS for comment textarea container */
 .comment-textarea-container {
-    margin-top: 20px;
-    padding-top: 20px;
-    border-top: 1px solid #dcdcde;
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #dcdcde;
 }
 
 .comment-textarea-container textarea {
-    width: calc(100% - 22px);
-    height: 100px;
-    padding: 10px;
-    border: 1px solid #dcdcde;
-    border-radius: 4px;
-    margin-bottom: 10px;
-    resize: vertical;
+  width: calc(100% - 22px);
+  height: 100px;
+  padding: 10px;
+  border: 1px solid #dcdcde;
+  border-radius: 4px;
+  margin-bottom: 10px;
+  resize: vertical;
 }
 
 /* Updated CSS for comment textarea container */
 .comment-textarea-container button {
-    background-color: #fff;
-    color: #333238;
-    border: 1px solid #bfbfc3; /* Updated border to match GitLab */
-    padding: 10px 20px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-    border-radius: 4px;
+  background-color: #fff;
+  color: #333238;
+  border: 1px solid #bfbfc3; /* Updated border to match GitLab */
+  padding: 10px 20px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  border-radius: 4px;
 }
 
 .comment-textarea-container button:hover {
-    background-color: rgba(0, 0, 0, 0.03); /* Light background on hover */
+  background-color: rgba(0, 0, 0, 0.03); /* Light background on hover */
 }
-
 
 /* Updated CSS for current user avatar */
 .current-user-avatar-container {
-    display: flex;
-    align-items: center;
-    margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
 }
 
 .current-user-avatar-container img {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    margin-right: 10px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  margin-right: 10px;
 }
 
 /* Updated CSS for GitLab-like buttons */
 .gl-button,
 .gl-button.btn-block {
-    border-width: 0;
-    padding: 10px 20px;
-    background-color: rgba(0, 0, 0, 0);
-    color: #333238;
-    box-shadow: inset 0 0 0 1px #bfbfc3;
-    justify-content: center;
-    align-items: center;
-    font-size: 0.875rem;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
+  border-width: 0;
+  padding: 10px 20px;
+  background-color: rgba(0, 0, 0, 0);
+  color: #333238;
+  box-shadow: inset 0 0 0 1px #bfbfc3;
+  justify-content: center;
+  align-items: center;
+  font-size: 0.875rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
 }
 
 .gl-button:hover,
 .gl-button.btn-block:hover {
-    background-color: rgba(0, 0, 0, 0.03); /* Light background on hover */
-    box-shadow: inset 0 0 0 1px #bfbfc3, 0 2px 4px rgba(0, 0, 0, 0.1); /* Updated box-shadow on hover */
+  background-color: rgba(0, 0, 0, 0.03); /* Light background on hover */
+  box-shadow:
+    inset 0 0 0 1px #bfbfc3,
+    0 2px 4px rgba(0, 0, 0, 0.1); /* Updated box-shadow on hover */
 }
 
 /* Updated CSS for tab links */
 .tab .tablinks {
-    background-color: #fff;
-    color: #333238;
-    border: 1px solid #bfbfc3;
-    padding: 10px 20px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-    border-radius: 4px;
+  background-color: #fff;
+  color: #333238;
+  border: 1px solid #bfbfc3;
+  padding: 10px 20px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  border-radius: 4px;
 }
 
 .tab .tablinks:hover {
-    background-color: rgba(0, 0, 0, 0.03); /* Light background on hover */
+  background-color: rgba(0, 0, 0, 0.03); /* Light background on hover */
 }
 
 /* Updated CSS for "Add Comment" button */
 #addCommentButton {
-    background-color: #fff;
-    color: #333238;
-    border: 1px solid #bfbfc3;
-    padding: 10px 20px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-    border-radius: 4px;
+  background-color: #fff;
+  color: #333238;
+  border: 1px solid #bfbfc3;
+  padding: 10px 20px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  border-radius: 4px;
 }
 
 #addCommentButton:hover {
-    background-color: rgba(0, 0, 0, 0.03); /* Light background on hover */
+  background-color: rgba(0, 0, 0, 0.03); /* Light background on hover */
 }
 
 /* Updated CSS for GitLab login button */
 .gitlab-button {
-    display: inline-flex !important;
-    align-items: center !important;
-    padding: 6px 10px;
-    background-color: #fff;
-    color: #333238;
-    border: 1px solid #bfbfc3;
-    border-radius: 4px; /* Adjust border radiusgitlab-button */
-    cursor: pointer;
-    transition: background-color 100ms linear, border-color 100ms linear, color 100ms linear, box-shadow 100ms linear;
+  display: inline-flex !important;
+  align-items: center !important;
+  padding: 6px 10px;
+  background-color: #fff;
+  color: #333238;
+  border: 1px solid #bfbfc3;
+  border-radius: 4px; /* Adjust border radiusgitlab-button */
+  cursor: pointer;
+  transition:
+    background-color 100ms linear,
+    border-color 100ms linear,
+    color 100ms linear,
+    box-shadow 100ms linear;
 }
 
 .gitlab-button img {
-    width: 24px;
-    height: 24px;
-    margin-right: 8px; /* Adjust margin for icon */
+  width: 24px;
+  height: 24px;
+  margin-right: 8px; /* Adjust margin for icon */
 }
 
 .gitlab-button .gl-button-text {
-    display: flex;
-    align-items: center;
-    gap: 8px; /* Spacing between icon and text */
+  display: flex;
+  align-items: center;
+  gap: 8px; /* Spacing between icon and text */
 }
 
 .gitlab-button:hover {
-    background-color: rgba(0, 0, 0, 0.03); /* Light background on hover */
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Add box-shadow on hover */
+  background-color: rgba(0, 0, 0, 0.03); /* Light background on hover */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Add box-shadow on hover */
 }
 
 #Preview {
-    min-height: 300px;
-    overflow-y: auto; /* Enable vertical scroll if content overflows */
-    padding: 10px;
-    border: 1px solid #dcdcde;
-    border-radius: 4px;
-    background-color: #f6f8fa; /* Light gray background */
+  min-height: 300px;
+  overflow-y: auto; /* Enable vertical scroll if content overflows */
+  padding: 10px;
+  border: 1px solid #dcdcde;
+  border-radius: 4px;
+  background-color: #f6f8fa; /* Light gray background */
 }
 
 /* Center the reactions section */
 .reactions-bar {
-    text-align: center;
-    margin-bottom: 10px;
-    display: flex;
-    justify-content: center;
-  }
-  
-  /* Center container for reaction buttons */
-  .reactions-center {
-    display: flex;
-    align-items: center; /* Center items vertically */
-  }
-  
-  /* Custom styling for reaction buttons */
-  .reaction-btn,
-  .reaction-toggle-btn,
-  .reaction-popup-btn {
-    display: inline-block;
-    height: 40px;
-    margin-right: 10px; /* Space between buttons */
-    padding: 4px 8px;   /* Smaller padding for a slightly smaller button */
-    border: 1px solid #ccc;
-    background-color: #f6f8fa;
-    cursor: pointer;
-    font-size: 1em;     /* Slightly smaller font size */
-    border-radius: 4px; /* Rectangular with slightly rounded corners */
-    transition: background-color 0.2s ease, border-color 0.2s ease;
-  }
-  
-  /* Hover effect for reaction buttons */
-  .reaction-btn:hover,
-  .reaction-toggle-btn:hover,
-  .reaction-popup-btn:hover {
-    background-color: #e0e4e8;
-    border-color: #b0b7bd;
-  }
-  
-  /* Ensure the SVG in the toggle button displays properly */
-  .reaction-toggle-btn svg {
-    vertical-align: middle;
-    width: 24px;
-    height: 24px;
-    fill: currentColor;
-  }
-  
-  /* Popup container styling */
-  #reaction-popup {
-    display: none;
-    position: absolute;
-    border: 1px solid #ccc;
-    background-color: #fff;
-    padding: 5px;
-    z-index: 1000;
-    border-radius: 5px;
-  }
-  
-  /* Extra spacing for popup buttons */
-  #reaction-popup button {
-    margin-right: 10px;
-  }
+  text-align: center;
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: center;
+}
 
+/* Center container for reaction buttons */
+.reactions-center {
+  display: flex;
+  align-items: center; /* Center items vertically */
+}
 
-  /* Container for the two action buttons at the bottom of the widget */
+/* Custom styling for reaction buttons */
+.reaction-btn,
+.reaction-toggle-btn,
+.reaction-popup-btn {
+  display: inline-block;
+  height: 40px;
+  margin-right: 10px; /* Space between buttons */
+  padding: 4px 8px; /* Smaller padding for a slightly smaller button */
+  border: 1px solid #ccc;
+  background-color: #f6f8fa;
+  cursor: pointer;
+  font-size: 1em; /* Slightly smaller font size */
+  border-radius: 4px; /* Rectangular with slightly rounded corners */
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+/* Hover effect for reaction buttons */
+.reaction-btn:hover,
+.reaction-toggle-btn:hover,
+.reaction-popup-btn:hover {
+  background-color: #e0e4e8;
+  border-color: #b0b7bd;
+}
+
+/* Ensure the SVG in the toggle button displays properly */
+.reaction-toggle-btn svg {
+  vertical-align: middle;
+  width: 24px;
+  height: 24px;
+  fill: currentColor;
+}
+
+/* Popup container styling */
+#reaction-popup {
+  display: none;
+  position: absolute;
+  border: 1px solid #ccc;
+  background-color: #fff;
+  padding: 5px;
+  z-index: 1000;
+  border-radius: 5px;
+}
+
+/* Extra spacing for popup buttons */
+#reaction-popup button {
+  margin-right: 10px;
+}
+
+/* Container for the two action buttons at the bottom of the widget */
 .comment-actions {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-top: 10px;
-  }
-  
-  /* Optional: Adjust the auth button styling if needed */
-  .auth-button img.gitlab-logo {
-    width: 24px;
-    height: 24px;
-    margin-right: 8px;
-  }
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 10px;
+}
 
-  #addCommentButton:disabled {
-    background-color: #eee !important;
-    color: #aaa !important;
-    border: 1px solid #ccc !important;
-    cursor: not-allowed !important;
-  }
-  
+/* Optional: Adjust the auth button styling if needed */
+.auth-button img.gitlab-logo {
+  width: 24px;
+  height: 24px;
+  margin-right: 8px;
+}
+
+#addCommentButton:disabled {
+  background-color: #eee !important;
+  color: #aaa !important;
+  border: 1px solid #ccc !important;
+  cursor: not-allowed !important;
+}

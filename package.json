@@ -4,6 +4,8 @@
   "description": "This is an open-source widget allowing bloggers to insert comment section to their blogs hosted on GitLab Pages. The comments use GitLab issues underneath.",
   "main": "dist/beblob.js",
   "scripts": {
+    "lint": "eslint --fix 'src/**/*.{js,jsx}'",
+    "format": "prettier --write 'src/**/*.{js,jsx,json,css,scss,md}'",
     "start": "webpack serve --config webpack.config.js --mode development",
     "build": "webpack --config webpack.config.js"
   },
@@ -19,23 +21,27 @@
   "homepage": "https://gitlab.com/antonbelev/beblob#readme",
   "dependencies": {
     "axios": "^1.6.7",
+    "codemirror": "5.65.16",
+    "copy-webpack-plugin": "^12.0.2",
     "express": "^4.19.2",
+    "highlight.js": "^11.9.0",
     "html-loader": "^5.0.0",
     "html-webpack-plugin": "^5.6.0",
-    "copy-webpack-plugin": "^12.0.2",
     "http-server": "14.1.1",
-    "webpack": "^5.91.0",
-    "webpack-dev-server": "^4.8.0",
     "marked": "^12.0.1",
     "marked-highlight": "^2.1.1",
-    "highlight.js": "^11.9.0",
     "simplemde": "^1.11.2",
-    "codemirror": "5.65.16"
+    "webpack": "^5.91.0",
+    "webpack-dev-server": "^4.8.0"
   },
   "devDependencies": {
     "css-loader": "^6.10.0",
+    "eslint": "^9.20.1",
+    "eslint-config-prettier": "^10.0.1",
+    "eslint-plugin-prettier": "^5.2.3",
+    "prettier": "^3.5.1",
     "style-loader": "^3.3.4",
-    "webpack-cli": "^5.1.4",
-    "url-loader": "^4.1.1"
+    "url-loader": "^4.1.1",
+    "webpack-cli": "^5.1.4"
   }
 }
