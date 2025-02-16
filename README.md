@@ -47,7 +47,7 @@ BeBlob supports several configuration options that you set as data attributes on
   A Boolean flag (or string value `"true"`/`"false"`) indicating whether you are running in development mode. In development mode, BeBlob loads its assets locally; in production, assets are loaded from a CDN (e.g., unpkg).
 
 - **beblobVersion**  
-  The version of BeBlob to load when retrieving the script from a CDN. This allows you to lock your site to a specific release (e.g., `1.3.0`) or update it as needed. See (latest release here)[https://www.npmjs.com/package/beblob]
+  The version of BeBlob to load when retrieving the script from a CDN. This allows you to lock your site to a specific release (e.g., `1.3.0`) or update it as needed. See [atest release here](https://www.npmjs.com/package/beblob).
 
 ## Integration
 
