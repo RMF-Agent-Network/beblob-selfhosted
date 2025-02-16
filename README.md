@@ -1,14 +1,32 @@
 # BeBlob
 
 ## Description
-BeBlob is an open-source library that enables you to add a comment section to your web pages hosted on GitLab. The primary use case is to integrate a comment section into your Hexo or Cactus blogs hosted on GitLab Pages.
-
-BeBlob maps your page URL to a GitLab issue within a configurable repository, enabling authenticated GitLab users to add comments and view others' comments.
+BeBlob is an open-source library that enhances any static or dynamic website by seamlessly adding a comment section to your webpages—without requiring any backend or database integration. By leveraging GitLab issues for storage and management, BeBlob allows website owners to implement a robust commenting system with minimal setup. Users authenticate via GitLab OAuth, and their comments are stored as GitLab issues, making it an ideal solution for blogs, portfolios, and other sites seeking an interactive commenting experience.
 
 ## How It Works
 BeBlob uses the GitLab OAuth flow to authenticate users. When a visitor wants to comment, they are redirected to GitLab where they can authorize the application using the "Authorization Code with PKCE" flow. Once authenticated, a token is stored locally to interact with GitLab’s API, allowing the application to create or retrieve issues corresponding to the current page and manage discussions seamlessly.
 
 After authentication, BeBlob leverages GitLab issues to manage comments. Each page is mapped to an issue where all comments (or discussions) are stored and retrieved. This allows you to benefit from GitLab’s built-in features for comments, reactions, and moderation. For more details, check out the [GitLab OAuth documentation](https://docs.gitlab.com/ee/api/oauth2.html).
+
+## Features
+
+- **Emoji Reactions:**  
+  Users can react to posts using a predefined set of emojis (e.g., 👍, 👎, ❤️, 🎉, 😕) to quickly express their feedback.
+
+- **Markdown Comments:**  
+  Supports writing comments in Markdown, allowing for rich text formatting.
+
+- **Live Preview:**  
+  Users can preview their Markdown comments before posting, ensuring that the final comment appears as intended.
+
+- **GitLab Authentication:**  
+  Provides a seamless GitLab OAuth integration so users can authenticate using their GitLab account. This enables personalized interactions and proper attribution of comments.
+
+- **Logout Support:**  
+  Users can easily log out, clearing their authentication token and returning the widget to its initial state.
+
+- **Seamless Integration:**  
+  Designed to work on any static or dynamic website without requiring a dedicated backend or database, leveraging GitLab issues for comment storage.
 
 ## Configuration
 To use BeBlob, you must first create an OAuth application in GitLab:
@@ -18,7 +36,7 @@ To use BeBlob, you must first create an OAuth application in GitLab:
    - **Redirect URI:** Set this to the URL of your blog (e.g., `https://your-blog.com/`)
    - **Scopes:** `api` (Access the API on your behalf) and `read_user` (Read your personal information)
    - **Confidential:** Make sure the application is not set as confidential.
-3. Note the **Application ID** (e.g., for my setup it is `b1c714b657fd46e01e5bfcbd26a12d561b27494c252141e52e886baeb0b0df5a`). You will need this along with the other configuration options in your widget.
+3. Note the **Application ID** (application id is not a secret!). You will need this along with the other configuration options in your widget.
 
 
 ## Configuration Options
