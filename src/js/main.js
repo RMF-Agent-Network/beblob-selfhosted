@@ -699,8 +699,9 @@ async function init(config) {
     const commentsCount =
       issue.user_notes_count !== undefined ? issue.user_notes_count : 0;
     const commentsLabel = document.createElement('div');
-    commentsLabel.classList.add('comments-label');
-    commentsLabel.innerHTML = `${commentsCount} Comments - <a href="https://gitlab.com/antonbelev/beblob" target="_blank">powered by BeBlob</a>`;
+    const commentText = commentsCount === 1 ? 'Comment' : 'Comments';
+    commentsLabel.innerHTML = `${commentsCount} ${commentText} - <a href="https://gitlab.com/antonbelev/beblob" target="_blank">powered by BeBlob</a>`;
+    issuesContainer.appendChild(commentsLabel);
     issuesContainer.appendChild(commentsLabel);
     const issueElement = document.createElement('div');
     issueElement.classList.add('issue');
@@ -720,7 +721,8 @@ async function init(config) {
     }
     if (discussions.length === 0) {
       const noCommentsElement = document.createElement('div');
-      noCommentsElement.textContent = 'No comments';
+      noCommentsElement.textContent =
+        'No comments yet. Be the first to join the conversation!';
       issueElement.appendChild(noCommentsElement);
     }
     issuesContainer.appendChild(issueElement);
