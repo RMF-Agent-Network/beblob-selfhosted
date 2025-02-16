@@ -84,7 +84,7 @@ function injectBeBlobUI(config) {
   if (container) {
     container.innerHTML = `
       <div class="beblob-widget">
-        <h1>GitLab Issues</h1>
+        <h1>Comments:</h1>
         <!-- Reactions section placed above the issue details -->
         <div id="reactionsContainer" class="reactions-bar"></div>
         <div id="issuesContainer">
