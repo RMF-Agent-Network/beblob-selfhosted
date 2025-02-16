@@ -396,16 +396,23 @@ async function init(config) {
   const authButton = document.getElementById("authButton");
   if (authButton) {
     authButton.addEventListener("click", () => {
-      const storedToken = localStorage.getItem(LOCAL_STORAGE_KEY);
-      if (storedToken) {
-        // Logout: clear token and reload
-        localStorage.removeItem(LOCAL_STORAGE_KEY);
-        window.location.reload();
-      } else {
-        // Login
-        authenticateWithGitLab();
-      }
-    });
+        const storedToken = localStorage.getItem(LOCAL_STORAGE_KEY);
+        if (storedToken) {
+          // Logout: clear token and remove query params, then reload
+          localStorage.removeItem(LOCAL_STORAGE_KEY);
+      
+          // Remove 'code' and 'state' query parameters from the URL.
+          const url = new URL(window.location);
+          url.searchParams.delete('code');
+          url.searchParams.delete('state');
+          window.history.replaceState({}, document.title, url.toString());
+      
+          window.location.reload();
+        } else {
+          // Login
+          authenticateWithGitLab();
+        }
+      });
     console.log("BeBlob: Auth button event listener attached");
   } else {
     console.error("BeBlob error: Auth button not found");
