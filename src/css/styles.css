@@ -272,4 +272,27 @@ body {
   #reaction-popup button {
     margin-right: 10px;
   }
+
+
+  /* Container for the two action buttons at the bottom of the widget */
+.comment-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 10px;
+  }
+  
+  /* Optional: Adjust the auth button styling if needed */
+  .auth-button img.gitlab-logo {
+    width: 24px;
+    height: 24px;
+    margin-right: 8px;
+  }
+
+  #addCommentButton:disabled {
+    background-color: #eee !important;
+    color: #aaa !important;
+    border: 1px solid #ccc !important;
+    cursor: not-allowed !important;
+  }
   

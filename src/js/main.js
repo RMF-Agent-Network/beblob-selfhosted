@@ -67,15 +67,15 @@ function getAssetUrl(path, config) {
 }
 
 function injectBeBlobCSS(config) {
-// For local development, use the local CSS file.
-    if (config.devMode === "true" || config.devMode === true) {
-        injectCSS("/css/styles.css", "beblob-css");
-    } else {
-        // In production, load the CSS from unpkg.com using the specified version.
-        injectCSS(getAssetUrl("css/styles.css", config), "beblob-css");
-    }
-    injectCSS("https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css", "hljs-css");
-    injectCSS("https://cdn.jsdelivr.net/simplemde/latest/simplemde.min.css", "simplemde-css");
+  // For local development, use the local CSS file.
+  if (config.devMode === "true" || config.devMode === true) {
+    injectCSS("/css/styles.css", "beblob-css");
+  } else {
+    // In production, load the CSS from unpkg.com using the specified version.
+    injectCSS(getAssetUrl("css/styles.css", config), "beblob-css");
+  }
+  injectCSS("https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css", "hljs-css");
+  injectCSS("https://cdn.jsdelivr.net/simplemde/latest/simplemde.min.css", "simplemde-css");
 }
 
 // Function to inject the UI into #beblob_thread
@@ -85,12 +85,6 @@ function injectBeBlobUI(config) {
     container.innerHTML = `
       <div class="beblob-widget">
         <h1>GitLab Issues</h1>
-        <div class="gitlab-button-container">
-          <button id="authButton" class="gl-button">
-            <img src="${getAssetUrl('images/gitlab-logo-500.svg', config)}" alt="GitLab Logo" class="gitlab-logo">
-            Authenticate with GitLab
-          </button>
-        </div>
         <!-- Reactions section placed above the issue details -->
         <div id="reactionsContainer" class="reactions-bar"></div>
         <div id="issuesContainer">
@@ -110,7 +104,13 @@ function injectBeBlobUI(config) {
           <div id="Preview" class="tabcontent" style="display: none;">
             <div id="previewContent"></div>
           </div>
-          <button id="addCommentButton" class="gl-button">Add Comment</button>
+          <div class="comment-actions">
+            <button id="addCommentButton" class="gl-button">Add Comment</button>
+            <button id="authButton" class="gitlab-button">
+              <img src="${getAssetUrl('images/gitlab-logo-500.svg', config)}" alt="GitLab Logo" class="gitlab-logo">
+              Authenticate with GitLab
+            </button>
+          </div>
         </div>
       </div>
     `;
@@ -122,10 +122,6 @@ function injectBeBlobUI(config) {
 
 // ... [Rest of the code remains largely unchanged.]
 // (For brevity, the functions for createIssue, fetchReactions, addReaction, removeReaction, toggleReaction, renderReactions, displayIssue, createCommentElement, fetchCurrentUser, displayCurrentUserAvatar, showLoadingOverlay, hideLoadingOverlay, openTab, updatePreview, addCommentToIssue, and OAuth handling remain the same as in your previous version, with one change in renderBeBlobUI() and injectBeBlobCSS() using getAssetUrl().)
-
-//
-// --- Below is the same as previously, but with updated asset URL calls in injectBeBlobCSS and injectBeBlobUI ---
-//
 
 async function createIssue(accessToken, title, description) {
   console.log("BeBlob: Creating new issue with title:", title);
@@ -379,20 +375,92 @@ async function init(config) {
     window.location.href = oauthUrl;
   }
   
-  function showAuthButton() {
-    const authButtonContainer = document.querySelector(".gitlab-button-container");
-    if (authButtonContainer) {
-      authButtonContainer.style.display = "block";
-      console.log("BeBlob: Auth button displayed");
+  // New: Update the auth button text and functionality based on login state.
+  function updateAuthButton() {
+    const authButton = document.getElementById("authButton");
+    const addCommentButton = document.getElementById("addCommentButton");
+    const storedToken = localStorage.getItem(LOCAL_STORAGE_KEY);
+    if (storedToken) {
+      // If logged in, show logout (no icon) and enable add comment
+      authButton.innerHTML = "Logout";
+      addCommentButton.disabled = false;
+    } else {
+      // If not logged in, show the login button with GitLab icon and disable add comment
+      authButton.innerHTML = `<img src="${getAssetUrl('images/gitlab-logo-500.svg', config)}" alt="GitLab Logo" class="gitlab-logo">
+      Authenticate with GitLab`;
+      addCommentButton.disabled = true;
     }
   }
   
-  function hideAuthButton() {
-    const authButtonContainer = document.querySelector(".gitlab-button-container");
-    if (authButtonContainer) {
-      authButtonContainer.style.display = "none";
-      console.log("BeBlob: Auth button hidden");
+  // Attach event listener to auth button for login/logout behavior.
+  const authButton = document.getElementById("authButton");
+  if (authButton) {
+    authButton.addEventListener("click", () => {
+      const storedToken = localStorage.getItem(LOCAL_STORAGE_KEY);
+      if (storedToken) {
+        // Logout: clear token and reload
+        localStorage.removeItem(LOCAL_STORAGE_KEY);
+        window.location.reload();
+      } else {
+        // Login
+        authenticateWithGitLab();
+      }
+    });
+    console.log("BeBlob: Auth button event listener attached");
+  } else {
+    console.error("BeBlob error: Auth button not found");
+  }
+  
+  // Attach event listener to Add Comment button
+  const addCommentButton = document.getElementById("addCommentButton");
+  if (addCommentButton) {
+    addCommentButton.addEventListener("click", async () => {
+      console.log("BeBlob: 'Add Comment' button clicked");
+      const newComment = simplemde.value();
+      const storedToken = localStorage.getItem(LOCAL_STORAGE_KEY);
+      if (!storedToken) {
+        console.error("BeBlob error: Access token not found");
+        return;
+      }
+      if (!window.projectId || !window.currentIssueId) {
+        console.error("BeBlob error: Project ID or Issue ID not found");
+        return;
+      }
+      await addCommentToIssue(storedToken, newComment);
+      simplemde.value("");
+      await fetchIssuesByCriteria(storedToken, config.issueMappingStrategy);
+    });
+  } else {
+    console.error("BeBlob error: 'Add Comment' button not found");
+  }
+  
+  // Set initial state for buttons based on login status.
+  updateAuthButton();
+  
+  const tablinks = document.querySelectorAll(".tablinks");
+  if (tablinks) {
+    tablinks.forEach(tab => {
+      tab.addEventListener("click", () => {
+        const tabName = tab.getAttribute("data-tab");
+        openTab(tabName);
+      });
+    });
+    console.log("BeBlob: Tab event listeners attached");
+  } else {
+    console.error("BeBlob error: No tab links found");
+  }
+  
+  const storedToken = localStorage.getItem(LOCAL_STORAGE_KEY);
+  if (storedToken) {
+    console.log("BeBlob: Found stored token, proceeding with project fetch");
+    // Hide auth button is not needed since the same button is used for logout.
+    await fetchProjectId(storedToken);
+    const user = await fetchCurrentUser(storedToken);
+    if (user) {
+      displayCurrentUserAvatar(user);
     }
+  } else {
+    console.log("BeBlob: No stored token found");
   }
   
   async function requestAccessToken(code) {
@@ -415,8 +483,8 @@ async function init(config) {
       const accessToken = data.access_token;
       localStorage.setItem(LOCAL_STORAGE_KEY, accessToken);
       console.log("BeBlob: Access token received");
-      hideAuthButton();
-      await fetchIssuesByCriteria(accessToken, config.issueMappingStrategy);
+      updateAuthButton();
+      await fetchProjectId(accessToken);
     } catch (error) {
       console.error("BeBlob error requesting access token:", error);
     }
@@ -432,7 +500,7 @@ async function init(config) {
       if (!response.ok) {
         if (response.status === 401) {
           localStorage.removeItem(LOCAL_STORAGE_KEY);
-          showAuthButton();
+          updateAuthButton();
         }
         throw new Error("Failed to fetch projects");
       }
@@ -497,6 +565,7 @@ async function init(config) {
       if (!response.ok) {
         if (response.status === 401) {
           localStorage.removeItem(LOCAL_STORAGE_KEY);
+          updateAuthButton();
         }
         throw new Error("Failed to fetch issues, status: " + response.status);
       }
@@ -533,6 +602,7 @@ async function init(config) {
       if (!response.ok) {
         if (response.status === 401) {
           localStorage.removeItem(LOCAL_STORAGE_KEY);
+          updateAuthButton();
         }
         throw new Error("Failed to fetch discussions for issue");
       }
@@ -636,6 +706,7 @@ async function init(config) {
       if (!response.ok) {
         if (response.status === 401) {
           localStorage.removeItem(LOCAL_STORAGE_KEY);
+          updateAuthButton();
         }
         throw new Error("Failed to fetch current user");
       }
@@ -732,65 +803,6 @@ async function init(config) {
     } catch (error) {
       console.error("BeBlob error adding comment:", error);
     }
-  }
-  
-  // Attach event listeners to UI elements
-  const addCommentButton = document.getElementById("addCommentButton");
-  if (addCommentButton) {
-    addCommentButton.addEventListener("click", async () => {
-      console.log("BeBlob: 'Add Comment' button clicked");
-      const newComment = simplemde.value();
-      const storedToken = localStorage.getItem(LOCAL_STORAGE_KEY);
-      if (!storedToken) {
-        console.error("BeBlob error: Access token not found");
-        return;
-      }
-      if (!window.projectId || !window.currentIssueId) {
-        console.error("BeBlob error: Project ID or Issue ID not found");
-        return;
-      }
-      await addCommentToIssue(storedToken, newComment);
-      simplemde.value("");
-      await fetchIssuesByCriteria(storedToken, config.issueMappingStrategy);
-    });
-  } else {
-    console.error("BeBlob error: 'Add Comment' button not found");
-  }
-  
-  const tablinks = document.querySelectorAll(".tablinks");
-  if (tablinks) {
-    tablinks.forEach(tab => {
-      tab.addEventListener("click", () => {
-        const tabName = tab.getAttribute("data-tab");
-        openTab(tabName);
-      });
-    });
-    console.log("BeBlob: Tab event listeners attached");
-  } else {
-    console.error("BeBlob error: No tab links found");
-  }
-  
-  const authButton = document.getElementById("authButton");
-  if (authButton) {
-    authButton.style.display = "block";
-    authButton.addEventListener("click", authenticateWithGitLab);
-    console.log("BeBlob: Auth button event listener attached");
-  } else {
-    console.error("BeBlob error: Auth button not found");
-  }
-  
-  const storedToken = localStorage.getItem(LOCAL_STORAGE_KEY);
-  if (storedToken) {
-    console.log("BeBlob: Found stored token, proceeding with project fetch");
-    hideAuthButton();
-    await fetchProjectId(storedToken);
-    const user = await fetchCurrentUser(storedToken);
-    if (user) {
-      displayCurrentUserAvatar(user);
-    }
-  } else {
-    console.log("BeBlob: No stored token found, showing auth button");
-    showAuthButton();
   }
   
   async function handleGitLabRedirect() {
