@@ -120,13 +120,14 @@ body {
 /* Updated CSS for GitLab-like buttons */
 .gl-button,
 .gl-button.btn-block {
+  display: inline-flex; /* Make this element a flex container */
+  justify-content: center;
+  align-items: center;
   border-width: 0;
   padding: 10px 20px;
   background-color: rgba(0, 0, 0, 0);
   color: #333238;
   box-shadow: inset 0 0 0 1px #bfbfc3;
-  justify-content: center;
-  align-items: center;
   font-size: 0.875rem;
   border-radius: 4px;
   cursor: pointer;
@@ -298,4 +299,46 @@ body {
   color: #aaa !important;
   border: 1px solid #ccc !important;
   cursor: not-allowed !important;
+}
+
+.beblob-widget {
+  position: relative;
+  min-height: 300px; /* Adjust as needed */
+}
+
+.loading-indicator {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  text-align: center;
+  font-size: 1.2rem;
+  color: #555;
+}
+
+.spinner {
+  /* Ensure the spinner is not forcing a block layout that prevents flex alignment */
+  display: inline-block;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #555;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+  /* Use margin auto to center it horizontally */
+  margin: 0 auto 5px auto;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }

@@ -95,37 +95,40 @@ function injectBeBlobUI(config) {
   const container = document.getElementById('beblob_thread');
   if (container) {
     container.innerHTML = `
-      <div class="beblob-widget">
-        <h1>Comments:</h1>
-        <!-- Reactions section placed above the issue details -->
-        <div id="reactionsContainer" class="reactions-bar"></div>
-        <div id="issuesContainer">
-          <!-- Issue details and comments will be displayed here -->
+        <div class="beblob-widget">
+          <h1>Comments:</h1>
+          <div id="loadingMessage" class="loading-indicator">
+            <div class="spinner"></div>
+            <div>Loading comments...</div>
+          </div>
+          <div id="beblob_content" style="display: none;">
+            <!-- Reactions section placed above the issue details -->
+            <div id="reactionsContainer" class="reactions-bar"></div>
+            <div id="issuesContainer">
+              <!-- Issue details and comments will be displayed here -->
+            </div>
+            <div class="comment-textarea-container">
+              <div class="tab">
+                <button class="tablinks gl-button" data-tab="Markdown">Markdown</button>
+                <button class="tablinks gl-button" data-tab="Preview">Preview</button>
+              </div>
+              <div id="Markdown" class="tabcontent">
+                <textarea id="newComment" class="comment-textarea" placeholder="Add a new comment..."></textarea>
+              </div>
+              <div id="Preview" class="tabcontent" style="display: none;">
+                <div id="previewContent"></div>
+              </div>
+              <div class="comment-actions">
+                <button id="addCommentButton" class="gl-button">Add Comment</button>
+                <button id="authButton" class="gl-button auth-button">
+                  <img src="${getAssetUrl('images/gitlab-logo-500.svg', config)}" alt="GitLab Logo" class="gitlab-logo">
+                  Authenticate with GitLab
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
-        <div id="overlay" class="overlay" style="display: none;">
-          <div class="overlay-text">Loading comments...</div>
-        </div>
-        <div class="comment-textarea-container">
-          <div class="tab">
-            <button class="tablinks gl-button" data-tab="Markdown">Markdown</button>
-            <button class="tablinks gl-button" data-tab="Preview">Preview</button>
-          </div>
-          <div id="Markdown" class="tabcontent">
-            <textarea id="newComment" class="comment-textarea" placeholder="Add a new comment..."></textarea>
-          </div>
-          <div id="Preview" class="tabcontent" style="display: none;">
-            <div id="previewContent"></div>
-          </div>
-          <div class="comment-actions">
-            <button id="addCommentButton" class="gl-button">Add Comment</button>
-            <button id="authButton" class="gitlab-button">
-              <img src="${getAssetUrl('images/gitlab-logo-500.svg', config)}" alt="GitLab Logo" class="gitlab-logo">
-              Authenticate with GitLab
-            </button>
-          </div>
-        </div>
-      </div>
-    `;
+      `;
     console.log('BeBlob: UI injected into #beblob_thread');
   } else {
     console.error(
@@ -133,9 +136,6 @@ function injectBeBlobUI(config) {
     );
   }
 }
-
-// ... [Rest of the code remains largely unchanged.]
-// (For brevity, the functions for createIssue, fetchReactions, addReaction, removeReaction, toggleReaction, renderReactions, displayIssue, createCommentElement, fetchCurrentUser, displayCurrentUserAvatar, showLoadingOverlay, hideLoadingOverlay, openTab, updatePreview, addCommentToIssue, and OAuth handling remain the same as in your previous version, with one change in renderBeBlobUI() and injectBeBlobCSS() using getAssetUrl().)
 
 async function createIssue(accessToken, title, description) {
   console.log('BeBlob: Creating new issue with title:', title);
@@ -486,7 +486,6 @@ async function init(config) {
   const storedToken = localStorage.getItem(LOCAL_STORAGE_KEY);
   if (storedToken) {
     console.log('BeBlob: Found stored token, proceeding with project fetch');
-    // Hide auth button is not needed since the same button is used for logout.
     await fetchProjectId(storedToken);
     const user = await fetchCurrentUser(storedToken);
     if (user) {
@@ -494,6 +493,8 @@ async function init(config) {
     }
   } else {
     console.log('BeBlob: No stored token found');
+    // Since we have no token, we want to reveal the UI so the login button and input appear.
+    hideLoadingOverlay();
   }
 
   async function requestAccessToken(code) {
@@ -824,6 +825,12 @@ async function init(config) {
       overlay.style.display = 'flex';
       console.log('BeBlob: Showing loading overlay');
     }
+    const loadingMessage = document.getElementById('loadingMessage');
+    const beblobContent = document.getElementById('beblob_content');
+    if (loadingMessage && beblobContent) {
+      loadingMessage.style.display = 'block';
+      beblobContent.style.display = 'none';
+    }
   }
 
   function hideLoadingOverlay() {
@@ -831,6 +838,14 @@ async function init(config) {
     if (overlay) {
       overlay.style.display = 'none';
       console.log('BeBlob: Hiding loading overlay');
+    }
+    // Also hide the separate loadingMessage element and show the content
+    const loadingMessage = document.getElementById('loadingMessage');
+    const beblobContent = document.getElementById('beblob_content');
+    if (loadingMessage && beblobContent) {
+      loadingMessage.style.display = 'none';
+      beblobContent.style.display = 'block';
+      console.log('BeBlob: Displaying content');
     }
   }
 
