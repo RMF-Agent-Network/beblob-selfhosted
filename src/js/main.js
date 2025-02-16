@@ -59,8 +59,7 @@ function injectCSS(href, id) {
 
 // Function to inject all required CSS files
 function injectBeBlobCSS() {
-//   injectCSS("https://unpkg.com/beblob@1.0.3/dist/css/styles.css", "beblob-css");
-
+  injectCSS("https://unpkg.com/beblob@1.2.0/dist/css/styles.css", "beblob-css");
   injectCSS("/css/beblob.css", "beblob-css");
   injectCSS("https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css", "hljs-css");
   injectCSS("https://cdn.jsdelivr.net/simplemde/latest/simplemde.min.css", "simplemde-css");
@@ -76,7 +75,7 @@ function injectBeBlobUI() {
         <h1>Comments </h1>
         <div class="gitlab-button-container">
           <button id="authButton" class="gl-button">
-            <img src="https://unpkg.com/beblob@1.0.3/dist/images/gitlab-logo-500.svg" alt="GitLab Logo" class="gitlab-logo">
+            <img src="https://unpkg.com/beblob@1.2.0/dist/images/gitlab-logo-500.svg" alt="GitLab Logo" class="gitlab-logo">
             Authenticate with GitLab
           </button>
         </div>
