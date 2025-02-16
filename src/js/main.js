@@ -13,6 +13,17 @@ const IssueFetchStrategy = {
 // Use a fixed local storage key for BeBlob
 const LOCAL_STORAGE_KEY = "beblobAccessToken";
 
+// Pre-defined reaction options – using "tada" for the party popper emoji.
+const predefinedReactions = ["thumbsup", "thumbsdown", "heart", "tada", "confused"];
+// Mapping from reaction name to its emoji representation.
+const emojiMap = {
+  thumbsup: "👍",
+  thumbsdown: "👎",
+  heart: "❤️",
+  tada: "🎉",
+  confused: "😕"
+};
+
 // Helper to create a marked instance with syntax highlighting
 function createMarked() {
   const markedInstance = new Marked(
@@ -48,33 +59,38 @@ function injectCSS(href, id) {
 
 // Function to inject all required CSS files
 function injectBeBlobCSS() {
-  injectCSS("https://unpkg.com/beblob@1.0.3/dist/css/styles.css", "beblob-css");
+//   injectCSS("https://unpkg.com/beblob@1.0.3/dist/css/styles.css", "beblob-css");
+
+  injectCSS("/css/beblob.css", "beblob-css");
   injectCSS("https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css", "hljs-css");
   injectCSS("https://cdn.jsdelivr.net/simplemde/latest/simplemde.min.css", "simplemde-css");
 }
 
 // Function to inject the UI into the designated container (#beblob_thread)
+// The reactions container is placed above the issue details.
 function injectBeBlobUI() {
   const container = document.getElementById("beblob_thread");
   if (container) {
     container.innerHTML = `
       <div class="beblob-widget">
-        <h1>GitLab Issues</h1>
+        <h1>Comments </h1>
         <div class="gitlab-button-container">
-          <button id="authButton" class="gitlab-button">
+          <button id="authButton" class="gl-button">
             <img src="https://unpkg.com/beblob@1.0.3/dist/images/gitlab-logo-500.svg" alt="GitLab Logo" class="gitlab-logo">
             Authenticate with GitLab
           </button>
         </div>
+        <!-- Reactions section placed above the issue details -->
+        <div id="reactionsContainer" class="reactions-bar"></div>
         <div id="issuesContainer">
-          <!-- Issues will be displayed here -->
+          <!-- Issue details and comments will be displayed here -->
         </div>
         <div id="overlay" class="overlay" style="display: none;">
           <div class="overlay-text">Loading comments...</div>
         </div>
         <div class="comment-textarea-container">
           <div class="tab">
-            <button class="tablinks gl-button" data-tab="Markdown">Markdown</button>
+            <button class="tablinks gl-button" data-tab="Markdown">Write</button>
             <button class="tablinks gl-button" data-tab="Preview">Preview</button>
           </div>
           <div id="Markdown" class="tabcontent">
@@ -93,15 +109,12 @@ function injectBeBlobUI() {
   }
 }
 
-// New: Create an issue if none is found
+// Create an issue if none is found (for URL or pageTitle strategies)
 async function createIssue(accessToken, title, description) {
   console.log("BeBlob: Creating new issue with title:", title);
   try {
     const apiUrl = `https://gitlab.com/api/v4/projects/${window.projectId}/issues`;
-    const body = {
-      title: title,
-      description: description || ""
-    };
+    const body = { title: title, description: description || "" };
     const response = await fetch(apiUrl, {
       method: "POST",
       headers: {
@@ -122,8 +135,203 @@ async function createIssue(accessToken, title, description) {
   }
 }
 
+// Fetch reactions (award emoji) for an issue
+async function fetchReactions(accessToken, issueIid) {
+  console.log("BeBlob: Fetching reactions for issue", issueIid);
+  try {
+    const apiUrl = `https://gitlab.com/api/v4/projects/${window.projectId}/issues/${issueIid}/award_emoji`;
+    const response = await fetch(apiUrl, {
+      headers: { "Authorization": `Bearer ${accessToken}` }
+    });
+    if (!response.ok) {
+      throw new Error("Failed to fetch reactions, status: " + response.status);
+    }
+    const reactions = await response.json();
+    console.log("BeBlob: Reactions fetched:", reactions);
+    return reactions;
+  } catch (error) {
+    console.error("BeBlob error fetching reactions:", error);
+    return [];
+  }
+}
+
+// Add a reaction for an issue
+async function addReaction(accessToken, issueIid, reactionName) {
+  console.log("BeBlob: Adding reaction", reactionName, "to issue", issueIid);
+  try {
+    const apiUrl = `https://gitlab.com/api/v4/projects/${window.projectId}/issues/${issueIid}/award_emoji`;
+    const response = await fetch(apiUrl, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${accessToken}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ name: reactionName })
+    });
+    if (!response.ok) {
+      throw new Error(await response.text());
+    }
+    const reaction = await response.json();
+    console.log("BeBlob: Reaction added:", reaction);
+    return reaction;
+  } catch (error) {
+    console.error("BeBlob error adding reaction:", error);
+    throw error;
+  }
+}
+
+// Remove a reaction using the DELETE API
+async function removeReaction(accessToken, issueIid, awardId) {
+  console.log("BeBlob: Removing reaction, awardId:", awardId);
+  try {
+    const apiUrl = `https://gitlab.com/api/v4/projects/${window.projectId}/issues/${issueIid}/award_emoji/${awardId}`;
+    const response = await fetch(apiUrl, {
+      method: "DELETE",
+      headers: { "Authorization": `Bearer ${accessToken}` }
+    });
+    if (!response.ok) {
+      throw new Error("Failed to remove reaction, status: " + response.status);
+    }
+    console.log("BeBlob: Reaction removed");
+    return true;
+  } catch (error) {
+    console.error("BeBlob error removing reaction:", error);
+    return false;
+  }
+}
+
+// Toggle a reaction: if the current user already reacted with 'name', remove it; otherwise, add it.
+async function toggleReaction(name, accessToken, issueIid) {
+  if (!window.currentUser) {
+    await fetchCurrentUser(accessToken);
+  }
+  const updatedReactions = await fetchReactions(accessToken, issueIid);
+  // Compare currentUser.id with r.user.id
+  const existing = updatedReactions.find(r => r.name === name && r.user && r.user.id === window.currentUser.id);
+  if (existing) {
+    await removeReaction(accessToken, issueIid, existing.id);
+  } else {
+    try {
+      await addReaction(accessToken, issueIid, name);
+    } catch (err) {
+      if (err.message.indexOf("already been taken") !== -1) {
+        const updatedReactions2 = await fetchReactions(accessToken, issueIid);
+        const duplicate = updatedReactions2.find(r => r.name === name && r.user && r.user.id === window.currentUser.id);
+        if (duplicate) {
+          await removeReaction(accessToken, issueIid, duplicate.id);
+        }
+      } else {
+        console.error("Error toggling reaction:", err);
+      }
+    }
+  }
+  const newReactions = await fetchReactions(accessToken, issueIid);
+  renderReactions(newReactions, accessToken, issueIid);
+}
+
+// Render reactions using our own styles for buttons.
+// The reactions section is centered and placed above the issue details.
+function renderReactions(reactions, accessToken, issueIid) {
+  const container = document.getElementById("reactionsContainer");
+  if (!container) {
+    console.error("BeBlob: Reactions container not found.");
+    return;
+  }
+  container.innerHTML = "";
+  
+  // Create a centered container for reaction buttons.
+  const centerDiv = document.createElement("div");
+  centerDiv.className = "reactions-center";
+  
+  // Group reactions by name and determine if the current user has reacted.
+  let reactionData = {};
+  reactions.forEach(r => {
+    const name = r.name;
+    if (!reactionData[name]) {
+      reactionData[name] = { count: 0, myAwardId: null };
+    }
+    reactionData[name].count++;
+    if (window.currentUser && r.user && r.user.id === window.currentUser.id) {
+      reactionData[name].myAwardId = r.id;
+    }
+  });
+  
+  // Render default reactions: thumbsup and thumbsdown (always show)
+  ["thumbsup", "thumbsdown"].forEach(name => {
+    const data = reactionData[name] || { count: 0, myAwardId: null };
+    const btn = document.createElement("button");
+    btn.className = "reaction-btn";
+    btn.innerHTML = `<span class="gl-button-text">${emojiMap[name]}</span> <span class="reaction-count">${data.count}</span>`;
+    btn.addEventListener("click", async () => {
+      await toggleReaction(name, accessToken, issueIid);
+    });
+    centerDiv.appendChild(btn);
+  });
+  
+  // Render any additional reaction types that have been used (with count > 0)
+  Object.keys(reactionData).forEach(name => {
+    if (name !== "thumbsup" && name !== "thumbsdown" && reactionData[name].count > 0) {
+      const data = reactionData[name];
+      const btn = document.createElement("button");
+      btn.className = "reaction-btn";
+      btn.innerHTML = `<span class="gl-button-text">${emojiMap[name]}</span> <span class="reaction-count">${data.count}</span>`;
+      btn.addEventListener("click", async () => {
+        await toggleReaction(name, accessToken, issueIid);
+      });
+      centerDiv.appendChild(btn);
+    }
+  });
+  
+  // Add a toggle button for the full reaction menu using the provided SVG icon.
+  const toggleBtn = document.createElement("button");
+  toggleBtn.className = "reaction-toggle-btn";
+  toggleBtn.innerHTML = `<span class="gl-button-text">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+      <path d="M12 1a11 11 0 1 0 11 11A11.013 11.013 0 0 0 12 1zm0 20a9 9 0 1 1 9-9 9.01 9.01 0 0 1-9 9zM8 11V9a1 1 0 0 1 2 0v2a1 1 0 0 1-2 0zm8-2v2a1 1 0 0 1-2 0V9a1 1 0 0 1 2 0zm-8 5h8a4 4 0 0 1-8 0z"/>
+    </svg>
+  </span>`;
+  centerDiv.appendChild(toggleBtn);
+  
+  container.innerHTML = "";
+  container.appendChild(centerDiv);
+  
+  // Create (or get) the popup element for the full reaction menu.
+  let popup = document.getElementById("reaction-popup");
+  if (!popup) {
+    popup = document.createElement("div");
+    popup.id = "reaction-popup";
+    popup.style.display = "none";
+    popup.style.position = "absolute";
+    popup.style.zIndex = 1000;
+    document.body.appendChild(popup);
+  }
+  
+  toggleBtn.addEventListener("click", () => {
+    if (popup.style.display === "none") {
+      popup.innerHTML = "";
+      predefinedReactions.forEach(name => {
+        const btn = document.createElement("button");
+        btn.className = "reaction-popup-btn";
+        btn.innerHTML = `<span class="gl-button-text">${emojiMap[name]}</span>`;
+        btn.addEventListener("click", async () => {
+          await toggleReaction(name, accessToken, issueIid);
+          popup.style.display = "none";
+        });
+        popup.appendChild(btn);
+      });
+      const rect = toggleBtn.getBoundingClientRect();
+      popup.style.top = (rect.bottom + window.scrollY) + "px";
+      popup.style.left = (rect.left + window.scrollX) + "px";
+      popup.style.display = "block";
+    } else {
+      popup.style.display = "none";
+    }
+  });
+  
+  console.log("BeBlob: Reactions rendered");
+}
+
 // Main initialization function.
-// It requires a full config object. If any required parameter is missing, the script logs an error and throws.
 export async function init(config) {
   console.log("BeBlob: Starting initialization...");
   if (
@@ -137,13 +345,13 @@ export async function init(config) {
     throw new Error("Missing required BeBlob configuration");
   }
   console.log("BeBlob: Config validated", config);
-
-  // Inject all CSS and the UI (into the provided container)
+  
+  // Inject CSS and UI
   injectBeBlobCSS();
   injectBeBlobUI();
-
+  
   const markedInstance = createMarked();
-
+  
   // Initialize the SimpleMDE editor for Markdown input
   const textarea = document.getElementById("newComment");
   if (!textarea) {
@@ -153,23 +361,21 @@ export async function init(config) {
   const simplemde = new SimpleMDE({
     element: textarea,
     hideIcons: ["preview", "side-by-side"],
-    renderingConfig: {
-      codeSyntaxHighlighting: true,
-    },
+    renderingConfig: { codeSyntaxHighlighting: true },
     tabSize: 4,
   });
-  console.log("BeBlob: SimpleMDE editor initialized");
-
+  console.log("BeBlob: Simplemde editor initialized");
+  
   // --- OAuth Handling with Static Callback URL & State Parameter ---
   function authenticateWithGitLab() {
-    const staticRedirectUri = config.redirectUri; // e.g. "http://localhost:4000/"
-    const originalUrl = window.location.href; // current page URL
+    const staticRedirectUri = config.redirectUri;
+    const originalUrl = window.location.href;
     const state = encodeURIComponent(originalUrl);
     const oauthUrl = `https://gitlab.com/oauth/authorize?client_id=${config.clientId}&redirect_uri=${encodeURIComponent(staticRedirectUri)}&response_type=code&state=${state}`;
     console.log("BeBlob: Redirecting to GitLab OAuth:", oauthUrl);
     window.location.href = oauthUrl;
   }
-
+  
   function showAuthButton() {
     const authButtonContainer = document.querySelector(".gitlab-button-container");
     if (authButtonContainer) {
@@ -177,7 +383,7 @@ export async function init(config) {
       console.log("BeBlob: Auth button displayed");
     }
   }
-
+  
   function hideAuthButton() {
     const authButtonContainer = document.querySelector(".gitlab-button-container");
     if (authButtonContainer) {
@@ -185,7 +391,7 @@ export async function init(config) {
       console.log("BeBlob: Auth button hidden");
     }
   }
-
+  
   async function requestAccessToken(code) {
     console.log("BeBlob: Requesting access token...");
     const tokenUrl = "https://gitlab.com/oauth/token";
@@ -212,7 +418,7 @@ export async function init(config) {
       console.error("BeBlob error requesting access token:", error);
     }
   }
-
+  
   async function fetchProjectId(accessToken) {
     console.log("BeBlob: Fetching project ID for project:", config.projectName);
     try {
@@ -237,8 +443,7 @@ export async function init(config) {
       console.error("BeBlob error fetching project ID:", error);
     }
   }
-
-  // Updated fetchIssuesByCriteria now uses the provided mapping strategy.
+  
   async function fetchIssuesByCriteria(accessToken, fetchStrategy) {
     console.log("BeBlob: Fetching issues by criteria", fetchStrategy);
     try {
@@ -257,7 +462,6 @@ export async function init(config) {
       } else {
         console.error("BeBlob error: Invalid fetch strategy");
       }
-      // If no issue is found and strategy is URL or pageTitle, create one.
       if (!issue && (fetchStrategy === IssueFetchStrategy.URL || fetchStrategy === IssueFetchStrategy.PAGE_TITLE)) {
         console.log("BeBlob: No issue found. Creating a new issue...");
         issue = await createIssue(accessToken, document.title, "Automatically created by BeBlob.");
@@ -272,7 +476,7 @@ export async function init(config) {
       hideLoadingOverlay();
     }
   }
-
+  
   async function fetchGitLabIssue(projectId, accessToken, fetchType, fetchParam) {
     console.log(`BeBlob: Fetching issue (type: ${fetchType}) with parameter:`, fetchParam);
     try {
@@ -297,7 +501,7 @@ export async function init(config) {
       let issueJson = null;
       if (Array.isArray(data)) {
         if (data.length > 0) {
-          issueJson = data[0]; // use first matching issue
+          issueJson = data[0];
         }
       } else {
         issueJson = data;
@@ -316,7 +520,7 @@ export async function init(config) {
       return null;
     }
   }
-
+  
   async function fetchIssueDiscussions(issueIid, accessToken) {
     console.log("BeBlob: Fetching discussions for issue", issueIid);
     try {
@@ -335,7 +539,7 @@ export async function init(config) {
       return [];
     }
   }
-
+  
   async function displayIssue(issue, accessToken) {
     console.log("BeBlob: Displaying issue", issue);
     const issuesContainer = document.getElementById("issuesContainer");
@@ -369,13 +573,16 @@ export async function init(config) {
     }
     if (discussions.length === 0) {
       const noCommentsElement = document.createElement("div");
-      noCommentsElement.textContent = "No comments yet. Be the first to share what you think!";
+      noCommentsElement.textContent = "No comments";
       issueElement.appendChild(noCommentsElement);
     }
     issuesContainer.appendChild(issueElement);
+    // Fetch and render reactions above the issue details.
+    const reactions = await fetchReactions(accessToken, issue.iid);
+    renderReactions(reactions, accessToken, issue.iid);
     console.log("BeBlob: Issue display complete");
   }
-
+  
   function createCommentElement(comment, isIndented) {
     const commentElement = document.createElement("div");
     commentElement.classList.add("comment");
@@ -416,7 +623,7 @@ export async function init(config) {
     commentElement.appendChild(bodyElement);
     return commentElement;
   }
-
+  
   async function fetchCurrentUser(accessToken) {
     console.log("BeBlob: Fetching current user...");
     try {
@@ -432,13 +639,14 @@ export async function init(config) {
       }
       const user = await response.json();
       console.log("BeBlob: Current user fetched", user);
+      window.currentUser = user;
       return user;
     } catch (error) {
       console.error("BeBlob error fetching current user:", error);
       return null;
     }
   }
-
+  
   function displayCurrentUserAvatar(user) {
     console.log("BeBlob: Displaying current user avatar");
     const currentUserAvatarContainer = document.createElement("div");
@@ -455,7 +663,7 @@ export async function init(config) {
       textareaContainer.insertBefore(currentUserAvatarContainer, textareaContainer.firstChild);
     }
   }
-
+  
   function showLoadingOverlay() {
     const overlay = document.getElementById("overlay");
     if (overlay) {
@@ -463,7 +671,7 @@ export async function init(config) {
       console.log("BeBlob: Showing loading overlay");
     }
   }
-
+  
   function hideLoadingOverlay() {
     const overlay = document.getElementById("overlay");
     if (overlay) {
@@ -471,7 +679,7 @@ export async function init(config) {
       console.log("BeBlob: Hiding loading overlay");
     }
   }
-
+  
   function openTab(tabName) {
     const tabcontent = document.getElementsByClassName("tabcontent");
     for (let i = 0; i < tabcontent.length; i++) {
@@ -494,7 +702,7 @@ export async function init(config) {
     }
     console.log("BeBlob: Opened tab:", tabName);
   }
-
+  
   function updatePreview() {
     const markdownContent = simplemde.value();
     const previewContent = document.getElementById("previewContent");
@@ -503,7 +711,7 @@ export async function init(config) {
       console.log("BeBlob: Updated preview");
     }
   }
-
+  
   async function addCommentToIssue(accessToken, commentBody) {
     console.log("BeBlob: Adding comment to issue...");
     try {
@@ -523,7 +731,7 @@ export async function init(config) {
       console.error("BeBlob error adding comment:", error);
     }
   }
-
+  
   // Attach event listeners to UI elements
   const addCommentButton = document.getElementById("addCommentButton");
   if (addCommentButton) {
@@ -546,7 +754,7 @@ export async function init(config) {
   } else {
     console.error("BeBlob error: 'Add Comment' button not found");
   }
-
+  
   const tablinks = document.querySelectorAll(".tablinks");
   if (tablinks) {
     tablinks.forEach(tab => {
@@ -559,7 +767,7 @@ export async function init(config) {
   } else {
     console.error("BeBlob error: No tab links found");
   }
-
+  
   const authButton = document.getElementById("authButton");
   if (authButton) {
     authButton.style.display = "block";
@@ -568,7 +776,7 @@ export async function init(config) {
   } else {
     console.error("BeBlob error: Auth button not found");
   }
-
+  
   const storedToken = localStorage.getItem(LOCAL_STORAGE_KEY);
   if (storedToken) {
     console.log("BeBlob: Found stored token, proceeding with project fetch");
@@ -582,7 +790,7 @@ export async function init(config) {
     console.log("BeBlob: No stored token found, showing auth button");
     showAuthButton();
   }
-
+  
   async function handleGitLabRedirect() {
     const urlParams = new URLSearchParams(window.location.search);
     const code = urlParams.get("code");
@@ -592,7 +800,6 @@ export async function init(config) {
       await requestAccessToken(code);
       if (state) {
         const originalUrl = decodeURIComponent(state);
-        // Append the code parameter so the original page can process it
         const separator = originalUrl.includes("?") ? "&" : "?";
         const redirectUrl = originalUrl + separator + "code=" + encodeURIComponent(code);
         console.log("BeBlob: Redirecting back to original page with code:", redirectUrl);
@@ -600,18 +807,18 @@ export async function init(config) {
       }
     }
   }
-
+  
   async function checkForOAuthRedirect() {
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.has("code")) {
       await handleGitLabRedirect();
     }
   }
-
+  
   await checkForOAuthRedirect();
   console.log("BeBlob: Initialization complete");
 }
-
+  
 // Auto-initialize by reading configuration from the script tag with ID 'beblob-script'
 document.addEventListener("DOMContentLoaded", () => {
   const script = document.getElementById("beblob-script");

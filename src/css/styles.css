@@ -211,4 +211,65 @@ body {
     background-color: #f6f8fa; /* Light gray background */
 }
 
-
+/* Center the reactions section */
+.reactions-bar {
+    text-align: center;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: center;
+  }
+  
+  /* Center container for reaction buttons */
+  .reactions-center {
+    display: flex;
+    align-items: center; /* Center items vertically */
+  }
+  
+  /* Custom styling for reaction buttons */
+  .reaction-btn,
+  .reaction-toggle-btn,
+  .reaction-popup-btn {
+    display: inline-block;
+    height: 40px;
+    margin-right: 10px; /* Space between buttons */
+    padding: 4px 8px;   /* Smaller padding for a slightly smaller button */
+    border: 1px solid #ccc;
+    background-color: #f6f8fa;
+    cursor: pointer;
+    font-size: 1em;     /* Slightly smaller font size */
+    border-radius: 4px; /* Rectangular with slightly rounded corners */
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+  }
+  
+  /* Hover effect for reaction buttons */
+  .reaction-btn:hover,
+  .reaction-toggle-btn:hover,
+  .reaction-popup-btn:hover {
+    background-color: #e0e4e8;
+    border-color: #b0b7bd;
+  }
+  
+  /* Ensure the SVG in the toggle button displays properly */
+  .reaction-toggle-btn svg {
+    vertical-align: middle;
+    width: 24px;
+    height: 24px;
+    fill: currentColor;
+  }
+  
+  /* Popup container styling */
+  #reaction-popup {
+    display: none;
+    position: absolute;
+    border: 1px solid #ccc;
+    background-color: #fff;
+    padding: 5px;
+    z-index: 1000;
+    border-radius: 5px;
+  }
+  
+  /* Extra spacing for popup buttons */
+  #reaction-popup button {
+    margin-right: 10px;
+  }
+  
