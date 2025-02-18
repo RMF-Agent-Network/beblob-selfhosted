@@ -97,15 +97,6 @@ function injectBeBlobUI(config) {
     const themeClass = `theme-${config.theme || 'light'}`;
     container.innerHTML = `
         <div class="beblob-widget ${themeClass}">
-          <div class="theme-selector-container">
-            <label for="themeSelector">Theme:</label>
-            <select id="themeSelector">
-              <option value="dark" ${config.theme === 'dark' ? 'selected' : ''}>Dark</option>
-              <option value="white" ${config.theme === 'white' ? 'selected' : ''}>White</option>
-              <option value="light" ${config.theme === 'light' ? 'selected' : ''}>Light</option>
-              <option value="classic" ${config.theme === 'classic' ? 'selected' : ''}>Classic</option>
-            </select>
-          </div>
           <h1>Comments:</h1>
           <div id="loadingMessage" class="loading-indicator">
             <div class="spinner"></div>

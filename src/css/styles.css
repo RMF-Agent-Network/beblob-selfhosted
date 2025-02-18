@@ -8,7 +8,7 @@ body {
 
 .issue {
   margin-bottom: 20px;
-  border: 1px solid #ccc;
+  border: 1.5px solid #ccc;
   padding: 10px;
 }
 
@@ -23,7 +23,7 @@ body {
 .comment {
   margin-bottom: 20px;
   padding: 15px;
-  border: 1px solid #dcdcde;
+  border: 1.5px solid #dcdcde; /* default border; will be overridden by theme */
   border-radius: 4px;
   background-color: #f6f8fa;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
@@ -34,7 +34,7 @@ body {
   align-items: center;
   margin-bottom: 10px;
   padding-bottom: 10px;
-  border-bottom: 1px solid #dcdcde;
+  border-bottom: 1.5px solid #dcdcde;
 }
 
 .comment-header img {
@@ -82,7 +82,8 @@ body {
 .comment-textarea-container {
   margin-top: 20px;
   padding-top: 20px;
-  border-top: 1px solid #dcdcde;
+  /* Remove visible border */
+  border: none;
   position: relative;
 }
 
@@ -90,7 +91,7 @@ body {
   width: calc(100% - 22px);
   min-height: 100px;
   padding: 10px;
-  border: 1px solid #dcdcde;
+  border: 1.5px solid #dcdcde;
   border-radius: 4px;
   margin-bottom: 10px;
   resize: vertical;
@@ -107,8 +108,8 @@ body {
   align-items: center;
 }
 .tab .current-user-avatar-container img {
-  width: 35px;
-  height: 35px;
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
 }
 
@@ -142,7 +143,7 @@ body {
 .tab {
   display: flex;
   align-items: center;
-  border-bottom: 1px solid #dcdcde;
+  border-bottom: 1.5px solid #dcdcde;
   margin-bottom: 0;
 }
 
@@ -163,7 +164,7 @@ body {
 .tab .tablinks.active {
   background-color: #2bbc8a;
   color: #fff !important;
-  border-bottom: 1px solid transparent;
+  border-bottom: 1.5px solid transparent;
 }
 
 /* Override Active Tab per Theme */
@@ -235,7 +236,7 @@ body {
   height: 40px;
   margin-right: 10px;
   padding: 4px 8px;
-  border: 1px solid #ccc;
+  border: 1.5px solid #ccc;
   background-color: #f6f8fa;
   cursor: pointer;
   font-size: 1em;
@@ -274,7 +275,7 @@ body {
   z-index: 1000;
   border-radius: 8px;
   background-color: #f6f8fa;
-  border: 1px solid #dcdcde;
+  border: 1.5px solid #dcdcde;
   color: inherit;
 }
 #reaction-popup button {
@@ -288,9 +289,10 @@ body {
   padding: 10px;
   border-radius: 8px;
   margin-bottom: 10px;
+  /* No visible border */
+  border: none;
   background-color: #f6f8fa;
   color: inherit;
-  border: 1px solid #dcdcde;
 }
 
 /* ===========================
@@ -312,7 +314,7 @@ body {
 #addCommentButton:disabled {
   background-color: #eee !important;
   color: #aaa !important;
-  border: 1px solid #ccc !important;
+  border: 1.5px solid #ccc !important;
   cursor: not-allowed !important;
 }
 
@@ -390,7 +392,7 @@ body {
 .beblob-widget.theme-dark #addCommentButton {
   background-color: #1d1f21;
   color: #c9cacc;
-  border: 1px solid #2bbc8a;
+  border: 1.5px solid #2bbc8a;
 }
 .beblob-widget.theme-dark .gl-button:hover,
 .beblob-widget.theme-dark .reaction-btn:hover,
@@ -411,13 +413,20 @@ body {
 .beblob-widget.theme-dark #issuesContainer {
   background-color: #1d1f21 !important;
   color: #c9cacc !important;
-  border: 1px solid #2bbc8a !important;
+  border: none;
 }
 /* Override Comments for Dark Theme */
 .beblob-widget.theme-dark .comment {
   background-color: #1d1f21 !important;
   border-color: #2bbc8a !important;
   color: #c9cacc !important;
+}
+/* CodeMirror for Dark Theme: border from .issue override */
+.beblob-widget.theme-dark #Preview,
+.beblob-widget.theme-dark .CodeMirror {
+  background-color: #1d1f21;
+  border: 1.5px solid #2bbc8a !important;
+  color: #c9cacc;
 }
 
 /* --- White Theme --- */
@@ -433,7 +442,7 @@ body {
 .beblob-widget.theme-white #addCommentButton {
   background-color: #ffffff;
   color: #333238;
-  border: 1px solid #bfbfc3;
+  border: 1.5px solid #bfbfc3;
 }
 .beblob-widget.theme-white .gl-button:hover,
 .beblob-widget.theme-white .reaction-btn:hover,
@@ -459,13 +468,20 @@ body {
 .beblob-widget.theme-white #issuesContainer {
   background-color: #ffffff !important;
   color: #333238 !important;
-  border: 1px solid #bfbfc3 !important;
+  border: none;
 }
 /* Override Comments for White Theme */
 .beblob-widget.theme-white .comment {
   background-color: #ffffff !important;
   border-color: #bfbfc3 !important;
   color: #333238 !important;
+}
+/* CodeMirror for White Theme */
+.beblob-widget.theme-white #Preview,
+.beblob-widget.theme-white .CodeMirror {
+  background-color: #ffffff;
+  border: 1.5px solid #bfbfc3 !important;
+  color: #333238;
 }
 
 /* --- Light Theme --- */
@@ -481,7 +497,7 @@ body {
 .beblob-widget.theme-light #addCommentButton {
   background-color: #e2e0de;
   color: #333238;
-  border: 1px solid #dcdcde;
+  border: 1.5px solid #dcdcde;
 }
 .beblob-widget.theme-light .gl-button:hover,
 .beblob-widget.theme-light .reaction-btn:hover,
@@ -508,13 +524,20 @@ body {
 .beblob-widget.theme-light #issuesContainer {
   background-color: #e2e0de !important;
   color: #333238 !important;
-  border: 1px solid #dcdcde !important;
+  border: none;
 }
 /* Override Comments for Light Theme */
 .beblob-widget.theme-light .comment {
   background-color: #e2e0de !important;
   border-color: #dcdcde !important;
   color: #333238 !important;
+}
+/* CodeMirror for Light Theme */
+.beblob-widget.theme-light #Preview,
+.beblob-widget.theme-light .CodeMirror {
+  background-color: #e2e0de;
+  border: 1.5px solid #dcdcde !important;
+  color: #333238;
 }
 
 /* --- Classic Theme --- */
@@ -530,7 +553,7 @@ body {
 .beblob-widget.theme-classic #addCommentButton {
   background-color: #fafafa;
   color: #000;
-  border: 1px solid #ccc;
+  border: 1.5px solid #ccc;
 }
 .beblob-widget.theme-classic .gl-button:hover,
 .beblob-widget.theme-classic .reaction-btn:hover,
@@ -557,13 +580,20 @@ body {
 .beblob-widget.theme-classic #issuesContainer {
   background-color: #fafafa !important;
   color: #000 !important;
-  border: 1px solid #ccc !important;
+  border: none;
 }
 /* Override Comments for Classic Theme */
 .beblob-widget.theme-classic .comment {
   background-color: #fafafa !important;
   border-color: #ccc !important;
   color: #000 !important;
+}
+/* CodeMirror for Classic Theme */
+.beblob-widget.theme-classic #Preview,
+.beblob-widget.theme-classic .CodeMirror {
+  background-color: #fafafa;
+  border: 1.5px solid #ccc !important;
+  color: #000;
 }
 
 /* ===========================
@@ -580,13 +610,13 @@ body {
   cursor: pointer;
   background-color: transparent;
   color: inherit !important;
-  border: 1px solid transparent;
+  border: 1.5px solid transparent;
 }
 
 .beblob-widget.theme-dark .editor-toolbar a {
   background-color: #1d1f21;
   color: #c9cacc !important;
-  border: 1px solid #2bbc8a;
+  border: 1.5px solid #2bbc8a;
 }
 .beblob-widget.theme-dark .editor-toolbar a:hover {
   background-color: #2bbc8a;
@@ -596,7 +626,7 @@ body {
 .beblob-widget.theme-white .editor-toolbar a {
   background-color: #ffffff;
   color: #333238 !important;
-  border: 1px solid #bfbfc3;
+  border: 1.5px solid #bfbfc3;
 }
 .beblob-widget.theme-white .editor-toolbar a:hover {
   background-color: rgba(0, 0, 0, 0.03);
@@ -605,7 +635,7 @@ body {
 .beblob-widget.theme-light .editor-toolbar a {
   background-color: #e2e0de;
   color: #333238 !important;
-  border: 1px solid #dcdcde;
+  border: 1.5px solid #dcdcde;
 }
 .beblob-widget.theme-light .editor-toolbar a:hover {
   background-color: #e0e4e8;
@@ -614,7 +644,7 @@ body {
 .beblob-widget.theme-classic .editor-toolbar a {
   background-color: #fafafa;
   color: #000 !important;
-  border: 1px solid #ccc;
+  border: 1.5px solid #ccc;
 }
 .beblob-widget.theme-classic .editor-toolbar a:hover {
   background-color: #f0f0f0;
@@ -626,25 +656,25 @@ body {
 .beblob-widget.theme-dark #Preview,
 .beblob-widget.theme-dark .CodeMirror {
   background-color: #1d1f21;
-  border: 1px solid #2bbc8a;
+  border: 1.5px solid #ccc !important;
   color: #c9cacc;
 }
 .beblob-widget.theme-white #Preview,
 .beblob-widget.theme-white .CodeMirror {
   background-color: #ffffff;
-  border: 1px solid #bfbfc3;
+  border: 1.5px solid #ccc !important;
   color: #333238;
 }
 .beblob-widget.theme-light #Preview,
 .beblob-widget.theme-light .CodeMirror {
   background-color: #e2e0de;
-  border: 1px solid #dcdcde;
+  border: 1.5px solid #ccc !important;
   color: #333238;
 }
 .beblob-widget.theme-classic #Preview,
 .beblob-widget.theme-classic .CodeMirror {
   background-color: #fafafa;
-  border: 1px solid #ccc;
+  border: 1.5px solid #ccc !important;
   color: #000;
 }
 
@@ -658,4 +688,8 @@ body {
 }
 .beblob-widget.theme-dark .CodeMirror-placeholder {
   color: #c9cacc;
+}
+/* Ensure dark theme cursor is visible */
+.beblob-widget.theme-dark .CodeMirror-cursor {
+  border-left: 1px solid #c9cacc !important;
 }
