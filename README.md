@@ -110,11 +110,13 @@ Example `_config.yml` snippet:
 
 ```yml
 beblob:
-    clientId: YOUR_GITLAB_APPLICATION_ID
-    redirectUri: https://your-blog.com/
-    projectName: Your GitLab Project Name
-    issueMappingStrategy: PAGE_TITLE
-    beblobVersion: 1.2.0
+  enabled: true
+  client_id: "<your-gitlab-application-id>"
+  redirect_uri: "https://yourwebsite.com"
+  project_name: "<your-gitlab-project-name>"
+  issue_mapping_strategy: "pageTitle"
+  version: "1.5.0"
+  theme: "light"
 ```
 
 Example `comments.ejs` snippet:
@@ -135,6 +137,7 @@ Example `comments.ejs` snippet:
               data-issue-mapping-strategy="<%= config.beblob.issue_mapping_strategy %>"
               data-dev-mode="true"
               data-beblob-version="<%= config.beblob.version %>"
+              data-theme="<%= config.beblob.theme %>"
               defer>
       </script>
     <% } else { %>
@@ -145,6 +148,7 @@ Example `comments.ejs` snippet:
               data-issue-mapping-strategy="<%= config.beblob.issue_mapping_strategy %>"
               data-dev-mode="false"
               data-beblob-version="<%= config.beblob.version %>"
+              data-theme="<%= config.beblob.theme %>"
               defer>
       </script>
     <% } %>
