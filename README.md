@@ -76,6 +76,7 @@ BeBlob supports several configuration options that you set as data attributes on
   - **white**
   - **light** (default)
   - **classic**  
+  
   Set this value as a data attribute (for example, `data-theme="dark"`) to have the widget adopt the corresponding color scheme across all elements (issues container, comments, buttons, editor, etc.).
 
 ## Integration
