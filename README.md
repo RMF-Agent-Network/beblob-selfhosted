@@ -8,6 +8,10 @@ BeBlob uses the GitLab OAuth flow to authenticate users. When a visitor wants to
 
 After authentication, BeBlob leverages GitLab issues to manage comments. Each page is mapped to an issue where all comments (or discussions) are stored and retrieved. This allows you to benefit from GitLab’s built-in features for comments, reactions, and moderation. For more details, check out the [GitLab OAuth documentation](https://docs.gitlab.com/ee/api/oauth2.html).
 
+## Demo
+
+You can see BeBlob in action [here!](https://antonbelev.gitlab.io/beblob-demo/)
+
 ## Features
 
 - **Emoji Reactions:**  
