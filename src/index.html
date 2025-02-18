@@ -2,60 +2,26 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>GitLab Comments</title>
-  <meta name="description" content="BeBlob is an open-source library allowing you to add comment section to your GitLab hosted Hexo Cactus blogs.">
-  <!-- Link to your CSS file -->
+  <title>BeBlob Demo Integration</title>
+  <meta name="description" content="Demo integration for BeBlob.">
+  <!-- Link to the local CSS file from the dev server (without the /dist prefix) -->
   <link rel="stylesheet" href="/css/styles.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/simplemde/latest/simplemde.min.css">
 </head>
 <body>
-  <h1>GitLab Issues</h1>
-
-  <div class="gitlab-button-container">
-    <button id="authButton" class="gitlab-button">
-      <img src="/images/gitlab-logo-500.svg" alt="GitLab Logo" class="gitlab-logo">
-      Authenticate with GitLab
-    </button>
-  </div>
-
-  <div id="issuesContainer">
-    <!-- Issues will be displayed here -->
-  </div>
-
-  <!-- Loading overlay -->
-  <div id="overlay" class="overlay" style="display: none;">
-    <div class="overlay-text">Loading comments...</div>
-  </div>
-
-  <div class="comment-textarea-container">
-    <!-- Tabs for Markdown and Preview -->
-    <div class="tab">
-      <button class="tablinks gl-button" data-tab="Markdown">Markdown</button>
-      <button class="tablinks gl-button" data-tab="Preview">Preview</button>
-    </div>
-
-    <!-- Textarea for Markdown -->
-    <div id="Markdown" class="tabcontent">
-      <textarea id="newComment" class="comment-textarea" placeholder="Add a new comment..."></textarea>
-    </div>
-
-    <!-- Div to display the preview -->
-    <div id="Preview" class="tabcontent" style="display: none;">
-      <div id="previewContent"></div>
-    </div>
-
-    <!-- Button to add comment -->
-    <button id="addCommentButton" class="gl-button">Add Comment</button>
-  </div>
-
-  <!-- Include the library from your dist folder with data attributes -->
-  <script src="/dist/beblob.js"
-          data-client-id="b13dc0c7b49e390d25c1278061c48ca938c5f48b72a6ec8f6e5d87c9d0cafc19"
-          data-redirect-uri="http://localhost:8080"
-          data-project-name="antonbelev.gitlab.io"
-          data-issue-mapping-strategy="issueId"
-          async>
+  <!-- Minimal integration snippet for BeBlob -->
+  <script
+    id="beblob-script"
+    src="/beblob.js"
+    data-client-id="b13dc0c7b49e390d25c1278061c48ca938c5f48b72a6ec8f6e5d87c9d0cafc19"
+    data-redirect-uri="http://localhost:8080/"
+    data-project-name="antonbelev.gitlab.io"
+    data-issue-mapping-strategy="pageTitle"
+    data-dev-mode="true"
+    data-theme="light"
+    async>
   </script>
+
+  <!-- Container where the widget will be injected -->
+  <div id="beblob_thread"></div>
 </body>
 </html>

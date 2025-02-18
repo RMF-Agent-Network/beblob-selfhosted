@@ -1,24 +1,31 @@
+/* ===========================
+   BASE STYLES
+=========================== */
 body {
   font-family: Arial, sans-serif;
   padding: 20px;
 }
+
 .issue {
   margin-bottom: 20px;
   border: 1px solid #ccc;
   padding: 10px;
 }
+
 .issue-description {
   font-weight: bold;
   margin-bottom: 10px;
 }
 
-/* Updated CSS for comment styling */
+/* ===========================
+     COMMENT STYLING
+  =========================== */
 .comment {
   margin-bottom: 20px;
   padding: 15px;
   border: 1px solid #dcdcde;
   border-radius: 4px;
-  background-color: #f6f8fa; /* Light gray background */
+  background-color: #f6f8fa;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
@@ -37,16 +44,15 @@ body {
   margin-right: 10px;
 }
 
-/* Updated CSS for comment author info */
 .comment-header .author-info {
   display: flex;
   align-items: center;
-  padding-bottom: 5px; /* Add padding to the bottom */
+  padding-bottom: 5px;
 }
 
 .comment-header .author-info .author-name {
   font-weight: bold;
-  color: #007bff; /* Blue for author name */
+  color: #007bff;
   text-decoration: none;
   margin-right: 5px;
 }
@@ -60,27 +66,29 @@ body {
 }
 
 .comment-header .author-info .comment-timestamp {
-  color: #6a737d; /* Gray for timestamp */
+  color: #6a737d;
 }
 
-/* CSS for comments label */
 .comments-label {
   margin-bottom: 10px;
   font-size: 16px;
   font-weight: bold;
-  color: #333238; /* Dark gray for label */
+  color: #333238;
 }
 
-/* CSS for comment textarea container */
+/* ===========================
+     COMMENT TEXTAREA CONTAINER
+  =========================== */
 .comment-textarea-container {
   margin-top: 20px;
   padding-top: 20px;
   border-top: 1px solid #dcdcde;
+  position: relative;
 }
 
 .comment-textarea-container textarea {
   width: calc(100% - 22px);
-  height: 100px;
+  min-height: 100px;
   padding: 10px;
   border: 1px solid #dcdcde;
   border-radius: 4px;
@@ -88,99 +96,109 @@ body {
   resize: vertical;
 }
 
-/* Updated CSS for comment textarea container */
-.comment-textarea-container button {
-  background-color: #fff;
-  color: #333238;
-  border: 1px solid #bfbfc3; /* Updated border to match GitLab */
-  padding: 10px 20px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-  border-radius: 4px;
-}
-
-.comment-textarea-container button:hover {
-  background-color: rgba(0, 0, 0, 0.03); /* Light background on hover */
-}
-
-/* Updated CSS for current user avatar */
-.current-user-avatar-container {
+/* ===========================
+     CURRENT USER AVATAR
+     (Placed inside the tab container)
+  =========================== */
+.tab .current-user-avatar-container {
+  margin-left: auto;
+  margin-right: 10px;
   display: flex;
   align-items: center;
-  margin-bottom: 10px;
 }
-
-.current-user-avatar-container img {
-  width: 32px;
-  height: 32px;
+.tab .current-user-avatar-container img {
+  width: 35px;
+  height: 35px;
   border-radius: 50%;
-  margin-right: 10px;
 }
 
-/* Updated CSS for GitLab-like buttons */
+/* ===========================
+     GITLAB-LIKE BUTTONS & TABS
+  =========================== */
 .gl-button,
 .gl-button.btn-block {
-  display: inline-flex; /* Make this element a flex container */
+  display: inline-flex;
   justify-content: center;
   align-items: center;
-  border-width: 0;
   padding: 10px 20px;
-  background-color: rgba(0, 0, 0, 0);
-  color: #333238;
+  background-color: transparent;
+  color: inherit;
   box-shadow: inset 0 0 0 1px #bfbfc3;
   font-size: 0.875rem;
-  border-radius: 4px;
+  border-radius: 8px;
   cursor: pointer;
   transition: background-color 0.3s ease;
 }
 
 .gl-button:hover,
 .gl-button.btn-block:hover {
-  background-color: rgba(0, 0, 0, 0.03); /* Light background on hover */
+  background-color: rgba(0, 0, 0, 0.03);
   box-shadow:
     inset 0 0 0 1px #bfbfc3,
-    0 2px 4px rgba(0, 0, 0, 0.1); /* Updated box-shadow on hover */
+    0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-/* Updated CSS for tab links */
+/* Tab container */
+.tab {
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid #dcdcde;
+  margin-bottom: 0;
+}
+
+/* Tab links */
 .tab .tablinks {
   background-color: #fff;
   color: #333238;
-  border: 1px solid #bfbfc3;
+  border: none;
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
   padding: 10px 20px;
   cursor: pointer;
   transition: background-color 0.3s ease;
-  border-radius: 4px;
+  margin-right: 2px;
 }
 
-.tab .tablinks:hover {
-  background-color: rgba(0, 0, 0, 0.03); /* Light background on hover */
+/* Active Tab State (Default) */
+.tab .tablinks.active {
+  background-color: #2bbc8a;
+  color: #fff !important;
+  border-bottom: 1px solid transparent;
 }
 
-/* Updated CSS for "Add Comment" button */
-#addCommentButton {
-  background-color: #fff;
+/* Override Active Tab per Theme */
+.beblob-widget.theme-dark .tab .tablinks.active {
+  background-color: #2bbc8a;
+  color: #1d1f21;
+}
+.beblob-widget.theme-white .tab .tablinks.active {
+  background-color: #cfcfcf;
   color: #333238;
-  border: 1px solid #bfbfc3;
+}
+.beblob-widget.theme-light .tab .tablinks.active {
+  background-color: #d4cfc9;
+  color: #333238;
+}
+.beblob-widget.theme-classic .tab .tablinks.active {
+  background-color: #e0e0e0;
+  color: #000;
+}
+
+/* Add Comment Button */
+#addCommentButton {
   padding: 10px 20px;
+  border-radius: 8px;
   cursor: pointer;
   transition: background-color 0.3s ease;
-  border-radius: 4px;
+  border: none;
 }
 
-#addCommentButton:hover {
-  background-color: rgba(0, 0, 0, 0.03); /* Light background on hover */
-}
-
-/* Updated CSS for GitLab login button */
+/* GitLab Login Button */
 .gitlab-button {
   display: inline-flex !important;
   align-items: center !important;
   padding: 6px 10px;
-  background-color: #fff;
-  color: #333238;
-  border: 1px solid #bfbfc3;
-  border-radius: 4px; /* Adjust border radiusgitlab-button */
+  border-radius: 8px;
   cursor: pointer;
   transition:
     background-color 100ms linear,
@@ -188,66 +206,47 @@ body {
     color 100ms linear,
     box-shadow 100ms linear;
 }
-
 .gitlab-button img {
   width: 24px;
   height: 24px;
-  margin-right: 8px; /* Adjust margin for icon */
+  margin-right: 8px;
+}
+.gitlab-button:hover {
+  background-color: rgba(0, 0, 0, 0.03);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.gitlab-button .gl-button-text {
+/* ===========================
+     REACTIONS & REACTION POPUP
+  =========================== */
+
+/* Container to center reaction buttons */
+.reactions-center {
   display: flex;
   align-items: center;
-  gap: 8px; /* Spacing between icon and text */
-}
-
-.gitlab-button:hover {
-  background-color: rgba(0, 0, 0, 0.03); /* Light background on hover */
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Add box-shadow on hover */
-}
-
-#Preview {
-  min-height: 300px;
-  overflow-y: auto; /* Enable vertical scroll if content overflows */
-  padding: 10px;
-  border: 1px solid #dcdcde;
-  border-radius: 4px;
-  background-color: #f6f8fa; /* Light gray background */
-}
-
-/* Center the reactions section */
-.reactions-bar {
-  text-align: center;
-  margin-bottom: 10px;
-  display: flex;
   justify-content: center;
 }
 
-/* Center container for reaction buttons */
-.reactions-center {
-  display: flex;
-  align-items: center; /* Center items vertically */
-}
-
-/* Custom styling for reaction buttons */
+/* Base settings for reaction buttons */
 .reaction-btn,
 .reaction-toggle-btn,
 .reaction-popup-btn {
   display: inline-block;
   height: 40px;
-  margin-right: 10px; /* Space between buttons */
-  padding: 4px 8px; /* Smaller padding for a slightly smaller button */
+  margin-right: 10px;
+  padding: 4px 8px;
   border: 1px solid #ccc;
   background-color: #f6f8fa;
   cursor: pointer;
-  font-size: 1em; /* Slightly smaller font size */
-  border-radius: 4px; /* Rectangular with slightly rounded corners */
+  font-size: 1em;
+  border-radius: 8px;
   transition:
     background-color 0.2s ease,
     border-color 0.2s ease;
+  text-align: center;
+  vertical-align: middle;
 }
 
-/* Hover effect for reaction buttons */
 .reaction-btn:hover,
 .reaction-toggle-btn:hover,
 .reaction-popup-btn:hover {
@@ -255,31 +254,48 @@ body {
   border-color: #b0b7bd;
 }
 
-/* Ensure the SVG in the toggle button displays properly */
+/* Ensure the reaction toggle button displays its SVG */
+.reaction-toggle-btn {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+}
 .reaction-toggle-btn svg {
-  vertical-align: middle;
   width: 24px;
   height: 24px;
   fill: currentColor;
+  vertical-align: middle;
 }
 
-/* Popup container styling */
+/* Generic fallback for reaction popup */
 #reaction-popup {
-  display: none;
   position: absolute;
-  border: 1px solid #ccc;
-  background-color: #fff;
   padding: 5px;
   z-index: 1000;
-  border-radius: 5px;
+  border-radius: 8px;
+  background-color: #f6f8fa;
+  border: 1px solid #dcdcde;
+  color: inherit;
 }
-
-/* Extra spacing for popup buttons */
 #reaction-popup button {
   margin-right: 10px;
 }
 
-/* Container for the two action buttons at the bottom of the widget */
+/* ===========================
+     ISSUES CONTAINER
+  =========================== */
+#issuesContainer {
+  padding: 10px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  background-color: #f6f8fa;
+  color: inherit;
+  border: 1px solid #dcdcde;
+}
+
+/* ===========================
+     COMMENT ACTIONS
+  =========================== */
 .comment-actions {
   display: flex;
   justify-content: space-between;
@@ -287,7 +303,6 @@ body {
   margin-top: 10px;
 }
 
-/* Optional: Adjust the auth button styling if needed */
 .auth-button img.gitlab-logo {
   width: 24px;
   height: 24px;
@@ -301,9 +316,12 @@ body {
   cursor: not-allowed !important;
 }
 
+/* ===========================
+     WIDGET & LOADING INDICATOR
+  =========================== */
 .beblob-widget {
   position: relative;
-  min-height: 300px; /* Adjust as needed */
+  min-height: 300px;
 }
 
 .loading-indicator {
@@ -322,7 +340,6 @@ body {
 }
 
 .spinner {
-  /* Ensure the spinner is not forcing a block layout that prevents flex alignment */
   display: inline-block;
   border: 4px solid #f3f3f3;
   border-top: 4px solid #555;
@@ -330,7 +347,6 @@ body {
   width: 40px;
   height: 40px;
   animation: spin 1s linear infinite;
-  /* Use margin auto to center it horizontally */
   margin: 0 auto 5px auto;
 }
 
@@ -341,4 +357,305 @@ body {
   100% {
     transform: rotate(360deg);
   }
+}
+
+/* ===========================
+     THEME SELECTOR
+  =========================== */
+.theme-selector-container {
+  margin-bottom: 10px;
+  text-align: right;
+}
+.theme-selector-container label {
+  margin-right: 5px;
+}
+
+/* ===========================
+     THEME STYLES & OVERRIDES
+  =========================== */
+
+/* --- Dark Theme --- */
+.beblob-widget.theme-dark {
+  background-color: #1d1f21;
+  color: #c9cacc;
+}
+.beblob-widget.theme-dark a {
+  color: #4cd69c !important;
+}
+.beblob-widget.theme-dark .gl-button,
+.beblob-widget.theme-dark .reaction-btn,
+.beblob-widget.theme-dark .reaction-toggle-btn,
+.beblob-widget.theme-dark .reaction-popup-btn,
+.beblob-widget.theme-dark .gitlab-button,
+.beblob-widget.theme-dark #addCommentButton {
+  background-color: #1d1f21;
+  color: #c9cacc;
+  border: 1px solid #2bbc8a;
+}
+.beblob-widget.theme-dark .gl-button:hover,
+.beblob-widget.theme-dark .reaction-btn:hover,
+.beblob-widget.theme-dark .reaction-toggle-btn:hover,
+.beblob-widget.theme-dark .reaction-popup-btn:hover,
+.beblob-widget.theme-dark .gitlab-button:hover,
+.beblob-widget.theme-dark #addCommentButton:hover {
+  background-color: #2bbc8a;
+  color: #1d1f21;
+}
+/* Reaction Popup for Dark Theme */
+.beblob-widget.theme-dark #reaction-popup {
+  background-color: #27a47a !important;
+  border-color: #2bbc8a !important;
+  color: #c9cacc !important;
+}
+/* Issues Container for Dark Theme */
+.beblob-widget.theme-dark #issuesContainer {
+  background-color: #1d1f21 !important;
+  color: #c9cacc !important;
+  border: 1px solid #2bbc8a !important;
+}
+/* Override Comments for Dark Theme */
+.beblob-widget.theme-dark .comment {
+  background-color: #1d1f21 !important;
+  border-color: #2bbc8a !important;
+  color: #c9cacc !important;
+}
+
+/* --- White Theme --- */
+.beblob-widget.theme-white {
+  background-color: #ffffff;
+  color: #333238;
+}
+.beblob-widget.theme-white .gl-button,
+.beblob-widget.theme-white .reaction-btn,
+.beblob-widget.theme-white .reaction-toggle-btn,
+.beblob-widget.theme-white .reaction-popup-btn,
+.beblob-widget.theme-white .gitlab-button,
+.beblob-widget.theme-white #addCommentButton {
+  background-color: #ffffff;
+  color: #333238;
+  border: 1px solid #bfbfc3;
+}
+.beblob-widget.theme-white .gl-button:hover,
+.beblob-widget.theme-white .reaction-btn:hover,
+.beblob-widget.theme-white .reaction-toggle-btn:hover,
+.beblob-widget.theme-white .reaction-popup-btn:hover,
+.beblob-widget.theme-white .gitlab-button:hover,
+.beblob-widget.theme-white #addCommentButton:hover {
+  background-color: rgba(0, 0, 0, 0.03);
+}
+.beblob-widget.theme-white .reaction-btn,
+.beblob-widget.theme-white .reaction-toggle-btn,
+.beblob-widget.theme-white .reaction-popup-btn {
+  background-color: #cfcfcf;
+  color: #333238;
+}
+/* Reaction Popup for White Theme */
+.beblob-widget.theme-white #reaction-popup {
+  background-color: #c0c0c0 !important;
+  border-color: #bfbfc3 !important;
+  color: #333238 !important;
+}
+/* Issues Container for White Theme */
+.beblob-widget.theme-white #issuesContainer {
+  background-color: #ffffff !important;
+  color: #333238 !important;
+  border: 1px solid #bfbfc3 !important;
+}
+/* Override Comments for White Theme */
+.beblob-widget.theme-white .comment {
+  background-color: #ffffff !important;
+  border-color: #bfbfc3 !important;
+  color: #333238 !important;
+}
+
+/* --- Light Theme --- */
+.beblob-widget.theme-light {
+  background-color: #e2e0de;
+  color: #333238;
+}
+.beblob-widget.theme-light .gl-button,
+.beblob-widget.theme-light .reaction-btn,
+.beblob-widget.theme-light .reaction-toggle-btn,
+.beblob-widget.theme-light .reaction-popup-btn,
+.beblob-widget.theme-light .gitlab-button,
+.beblob-widget.theme-light #addCommentButton {
+  background-color: #e2e0de;
+  color: #333238;
+  border: 1px solid #dcdcde;
+}
+.beblob-widget.theme-light .gl-button:hover,
+.beblob-widget.theme-light .reaction-btn:hover,
+.beblob-widget.theme-light .reaction-toggle-btn:hover,
+.beblob-widget.theme-light .reaction-popup-btn:hover,
+.beblob-widget.theme-light .gitlab-button:hover,
+.beblob-widget.theme-light #addCommentButton:hover {
+  background-color: #e0e4e8;
+  color: #333238;
+}
+.beblob-widget.theme-light .reaction-btn,
+.beblob-widget.theme-light .reaction-toggle-btn,
+.beblob-widget.theme-light .reaction-popup-btn {
+  background-color: #d4cfc9;
+  color: #333238;
+}
+/* Reaction Popup for Light Theme */
+.beblob-widget.theme-light #reaction-popup {
+  background-color: #c7c2bd !important;
+  border-color: #dcdcde !important;
+  color: #333238 !important;
+}
+/* Issues Container for Light Theme */
+.beblob-widget.theme-light #issuesContainer {
+  background-color: #e2e0de !important;
+  color: #333238 !important;
+  border: 1px solid #dcdcde !important;
+}
+/* Override Comments for Light Theme */
+.beblob-widget.theme-light .comment {
+  background-color: #e2e0de !important;
+  border-color: #dcdcde !important;
+  color: #333238 !important;
+}
+
+/* --- Classic Theme --- */
+.beblob-widget.theme-classic {
+  background-color: #fafafa;
+  color: #000;
+}
+.beblob-widget.theme-classic .gl-button,
+.beblob-widget.theme-classic .reaction-btn,
+.beblob-widget.theme-classic .reaction-toggle-btn,
+.beblob-widget.theme-classic .reaction-popup-btn,
+.beblob-widget.theme-classic .gitlab-button,
+.beblob-widget.theme-classic #addCommentButton {
+  background-color: #fafafa;
+  color: #000;
+  border: 1px solid #ccc;
+}
+.beblob-widget.theme-classic .gl-button:hover,
+.beblob-widget.theme-classic .reaction-btn:hover,
+.beblob-widget.theme-classic .reaction-toggle-btn:hover,
+.beblob-widget.theme-classic .reaction-popup-btn:hover,
+.beblob-widget.theme-classic .gitlab-button:hover,
+.beblob-widget.theme-classic #addCommentButton:hover {
+  background-color: #e0e0e0;
+  color: #000;
+}
+.beblob-widget.theme-classic .reaction-btn,
+.beblob-widget.theme-classic .reaction-toggle-btn,
+.beblob-widget.theme-classic .reaction-popup-btn {
+  background-color: #e0e0e0;
+  color: #000;
+}
+/* Reaction Popup for Classic Theme */
+.beblob-widget.theme-classic #reaction-popup {
+  background-color: #d5d5d5 !important;
+  border-color: #ccc !important;
+  color: #000 !important;
+}
+/* Issues Container for Classic Theme */
+.beblob-widget.theme-classic #issuesContainer {
+  background-color: #fafafa !important;
+  color: #000 !important;
+  border: 1px solid #ccc !important;
+}
+/* Override Comments for Classic Theme */
+.beblob-widget.theme-classic .comment {
+  background-color: #fafafa !important;
+  border-color: #ccc !important;
+  color: #000 !important;
+}
+
+/* ===========================
+     EDITOR TOOLBAR BUTTONS (THEMED)
+  =========================== */
+.editor-toolbar a {
+  display: inline-block;
+  text-align: center;
+  text-decoration: none !important;
+  width: 30px;
+  height: 30px;
+  margin: 0;
+  border-radius: 6px;
+  cursor: pointer;
+  background-color: transparent;
+  color: inherit !important;
+  border: 1px solid transparent;
+}
+
+.beblob-widget.theme-dark .editor-toolbar a {
+  background-color: #1d1f21;
+  color: #c9cacc !important;
+  border: 1px solid #2bbc8a;
+}
+.beblob-widget.theme-dark .editor-toolbar a:hover {
+  background-color: #2bbc8a;
+  color: #1d1f21 !important;
+}
+
+.beblob-widget.theme-white .editor-toolbar a {
+  background-color: #ffffff;
+  color: #333238 !important;
+  border: 1px solid #bfbfc3;
+}
+.beblob-widget.theme-white .editor-toolbar a:hover {
+  background-color: rgba(0, 0, 0, 0.03);
+}
+
+.beblob-widget.theme-light .editor-toolbar a {
+  background-color: #e2e0de;
+  color: #333238 !important;
+  border: 1px solid #dcdcde;
+}
+.beblob-widget.theme-light .editor-toolbar a:hover {
+  background-color: #e0e4e8;
+}
+
+.beblob-widget.theme-classic .editor-toolbar a {
+  background-color: #fafafa;
+  color: #000 !important;
+  border: 1px solid #ccc;
+}
+.beblob-widget.theme-classic .editor-toolbar a:hover {
+  background-color: #f0f0f0;
+}
+
+/* ===========================
+     UNIFIED MARKDOWN EDITOR STYLES (CodeMirror)
+  =========================== */
+.beblob-widget.theme-dark #Preview,
+.beblob-widget.theme-dark .CodeMirror {
+  background-color: #1d1f21;
+  border: 1px solid #2bbc8a;
+  color: #c9cacc;
+}
+.beblob-widget.theme-white #Preview,
+.beblob-widget.theme-white .CodeMirror {
+  background-color: #ffffff;
+  border: 1px solid #bfbfc3;
+  color: #333238;
+}
+.beblob-widget.theme-light #Preview,
+.beblob-widget.theme-light .CodeMirror {
+  background-color: #e2e0de;
+  border: 1px solid #dcdcde;
+  color: #333238;
+}
+.beblob-widget.theme-classic #Preview,
+.beblob-widget.theme-classic .CodeMirror {
+  background-color: #fafafa;
+  border: 1px solid #ccc;
+  color: #000;
+}
+
+.CodeMirror pre,
+.CodeMirror-line {
+  color: inherit;
+}
+
+.CodeMirror-placeholder {
+  color: #999;
+}
+.beblob-widget.theme-dark .CodeMirror-placeholder {
+  color: #c9cacc;
 }

@@ -43,7 +43,7 @@ function createMarked() {
   );
   markedInstance.setOptions({
     highlight: function (code, lang) {
-      return hljs.highlight(lang, code).value;
+      return hljs.highlight(code, lang).value;
     },
   });
   return markedInstance;
@@ -90,12 +90,22 @@ function injectBeBlobCSS(config) {
   );
 }
 
-// Function to inject the UI into #beblob_thread
+// Function to inject the UI into #beblob_thread and add theme support
 function injectBeBlobUI(config) {
   const container = document.getElementById('beblob_thread');
   if (container) {
+    const themeClass = `theme-${config.theme || 'light'}`;
     container.innerHTML = `
-        <div class="beblob-widget">
+        <div class="beblob-widget ${themeClass}">
+          <div class="theme-selector-container">
+            <label for="themeSelector">Theme:</label>
+            <select id="themeSelector">
+              <option value="dark" ${config.theme === 'dark' ? 'selected' : ''}>Dark</option>
+              <option value="white" ${config.theme === 'white' ? 'selected' : ''}>White</option>
+              <option value="light" ${config.theme === 'light' ? 'selected' : ''}>Light</option>
+              <option value="classic" ${config.theme === 'classic' ? 'selected' : ''}>Classic</option>
+            </select>
+          </div>
           <h1>Comments:</h1>
           <div id="loadingMessage" class="loading-indicator">
             <div class="spinner"></div>
@@ -129,6 +139,23 @@ function injectBeBlobUI(config) {
           </div>
         </div>
       `;
+    // Add event listener for theme selector
+    const themeSelector = container.querySelector('#themeSelector');
+    if (themeSelector) {
+      themeSelector.addEventListener('change', (e) => {
+        const selectedTheme = e.target.value;
+        const widget = container.querySelector('.beblob-widget');
+        if (widget) {
+          widget.classList.remove(
+            'theme-dark',
+            'theme-white',
+            'theme-light',
+            'theme-classic'
+          );
+          widget.classList.add(`theme-${selectedTheme}`);
+        }
+      });
+    }
     console.log('BeBlob: UI injected into #beblob_thread');
   } else {
     console.error(
@@ -326,7 +353,13 @@ function renderReactions(reactions, accessToken, issueIid) {
     popup.style.display = 'none';
     popup.style.position = 'absolute';
     popup.style.zIndex = 1000;
-    document.body.appendChild(popup);
+    // Append inside the widget container so that theme-specific styles are applied.
+    const widget = document.querySelector('.beblob-widget');
+    if (widget) {
+      widget.appendChild(popup);
+    } else {
+      document.body.appendChild(popup);
+    }
   }
 
   toggleBtn.addEventListener('click', () => {
@@ -547,6 +580,8 @@ async function init(config) {
       await fetchIssuesByCriteria(accessToken, config.issueMappingStrategy);
     } catch (error) {
       console.error('BeBlob error fetching project ID:', error);
+      // If fetching fails (e.g. due to 401), show the unauthenticated UI
+      hideLoadingOverlay();
     }
   }
 
@@ -799,23 +834,15 @@ async function init(config) {
 
   function displayCurrentUserAvatar(user) {
     console.log('BeBlob: Displaying current user avatar');
-    const currentUserAvatarContainer = document.createElement('div');
-    currentUserAvatarContainer.classList.add('current-user-avatar-container');
+    const avatarContainer = document.createElement('div');
+    avatarContainer.classList.add('current-user-avatar-container');
     const avatarImg = document.createElement('img');
     avatarImg.src = user.avatar_url;
     avatarImg.alt = user.name;
-    currentUserAvatarContainer.appendChild(avatarImg);
-    const bubbleElement = document.createElement('div');
-    bubbleElement.classList.add('bubble');
-    currentUserAvatarContainer.appendChild(bubbleElement);
-    const textareaContainer = document.querySelector(
-      '.comment-textarea-container'
-    );
-    if (textareaContainer) {
-      textareaContainer.insertBefore(
-        currentUserAvatarContainer,
-        textareaContainer.firstChild
-      );
+    avatarContainer.appendChild(avatarImg);
+    const tabContainer = document.querySelector('.tab');
+    if (tabContainer) {
+      tabContainer.appendChild(avatarContainer);
     }
   }
 
@@ -908,17 +935,11 @@ async function init(config) {
     if (code) {
       console.log('BeBlob: Handling GitLab redirect with code:', code);
       await requestAccessToken(code);
-      if (state) {
-        const originalUrl = decodeURIComponent(state);
-        const separator = originalUrl.includes('?') ? '&' : '?';
-        const redirectUrl =
-          originalUrl + separator + 'code=' + encodeURIComponent(code);
-        console.log(
-          'BeBlob: Redirecting back to original page with code:',
-          redirectUrl
-        );
-        window.location.href = redirectUrl;
-      }
+      // Remove the "code" and "state" parameters so they aren’t re-submitted on refresh.
+      const url = new URL(window.location);
+      url.searchParams.delete('code');
+      url.searchParams.delete('state');
+      window.history.replaceState({}, document.title, url.toString());
     }
   }
 
@@ -945,6 +966,7 @@ document.addEventListener('DOMContentLoaded', () => {
       issueId: script.dataset.issueId, // Optional; required only if mapping strategy is "issueId"
       devMode: script.dataset.devMode, // "true" or "false"
       beblobVersion: script.dataset.beblobVersion, // e.g., "1.2.0"
+      theme: script.dataset.theme || 'light',
     };
     if (
       !autoConfig.clientId ||
@@ -967,5 +989,15 @@ document.addEventListener('DOMContentLoaded', () => {
       'BeBlob auto init error: No configuration data attributes found in the script tag.'
     );
     throw new Error('Missing required BeBlob configuration in auto init');
+  }
+
+  const storedToken = localStorage.getItem(LOCAL_STORAGE_KEY);
+  if (storedToken) {
+    fetchProjectId(storedToken);
+    fetchCurrentUser(storedToken).then((user) => {
+      if (user) {
+        displayCurrentUserAvatar(user);
+      }
+    });
   }
 });

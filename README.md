@@ -28,6 +28,9 @@ After authentication, BeBlob leverages GitLab issues to manage comments. Each pa
 - **Seamless Integration:**  
   Designed to work on any static or dynamic website without requiring a dedicated backend or database, leveraging GitLab issues for comment storage.
 
+- **Customizable Themes:**  
+  BeBlob supports multiple themes (dark, white, light, and classic) inspired by the Hexo Cactus themes. These themes allow you to match the look and feel of your site, ensuring the comment widget integrates seamlessly with your overall design.
+
 ## Configuration
 To use BeBlob, you must first create an OAuth application in GitLab:
 1. Go to your GitLab account settings and navigate to **Applications**.
@@ -54,12 +57,12 @@ BeBlob supports several configuration options that you set as data attributes on
 
 - **issueMappingStrategy**  
   Determines how BeBlob maps your pages to GitLab issues. Possible values include:
-  - `URL`: Search by the full page URL.
-  - `PAGE_TITLE`: Search by the page title.
-  - `ISSUE_ID`: Use a specific issue ID (in this case, you must also provide the `issueId` option).
+  - `url`: Search by the full page URL.
+  - `pageTitle`: Search by the page title.
+  - `issueId`: Use a specific issue ID (in this case, you must also provide the `issueId` option).
 
 - **issueId (Optional)**  
-  When using the `ISSUE_ID` mapping strategy, specify the exact issue ID to use for storing and retrieving comments.
+  When using the `issueId` mapping strategy, specify the exact issue ID to use for storing and retrieving comments.
 
 - **devMode**  
   A Boolean flag (or string value `"true"`/`"false"`) indicating whether you are running in development mode. In development mode, BeBlob loads its assets locally; in production, assets are loaded from a CDN (e.g., unpkg).
@@ -67,9 +70,16 @@ BeBlob supports several configuration options that you set as data attributes on
 - **beblobVersion**  
   The version of BeBlob to load when retrieving the script from a CDN. This allows you to lock your site to a specific release (e.g., `1.3.0`) or update it as needed. See [latest release here](https://www.npmjs.com/package/beblob).
 
-## Integration
+- **theme**  
+  Specifies the visual theme for the BeBlob widget. Four themes are available:
+  - **dark**
+  - **white**
+  - **light** (default)
+  - **classic**  
+  Set this value as a data attribute (for example, `data-theme="dark"`) to have the widget adopt the corresponding color scheme across all elements (issues container, comments, buttons, editor, etc.).
 
-To integrate BeBlob into your website, include the following minimal HTML code in your page:
+## Integration
+To integrate BeBlob into your website, include the following minimal HTML code in your page. 
 
 ```html
 <!-- Include the BeBlob script with necessary configuration data attributes -->
@@ -79,9 +89,10 @@ To integrate BeBlob into your website, include the following minimal HTML code i
   data-client-id="YOUR_GITLAB_APPLICATION_ID"
   data-redirect-uri="https://your-blog.com/"
   data-project-name="Your GitLab Project Name"
-  data-issue-mapping-strategy="PAGE_TITLE"
+  data-issue-mapping-strategy="pageTitle"
   data-dev-mode="false"
   data-beblob-version="1.3.0"
+  data-theme="light"
 ></script>
 
 <!-- Container where the widget will be injected -->
@@ -154,7 +165,7 @@ If you found a bug or have an idea for a new feature, feel free to raise an issu
 ## Roadmap
 - [ ] Ability to manage comments (edit, delete, and moderate)
 - [ ] Reactions should be controlled by a configuration allowing clients to decide if they want to include that feature
-- [ ] Add multiple themes and customizable UI options (fonts, colors, layouts)
+- [X] Add multiple themes and customizable UI options (fonts, colors, layouts)
 - [ ] Investigate direct support in Hexo as a plugin
 - [ ] Threaded/nested replies for richer discussion structures
 
