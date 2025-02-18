@@ -18,8 +18,8 @@ body {
 }
 
 /* ===========================
-     COMMENT STYLING
-  =========================== */
+       COMMENT STYLING
+    =========================== */
 .comment {
   margin-bottom: 20px;
   padding: 15px;
@@ -77,8 +77,8 @@ body {
 }
 
 /* ===========================
-     COMMENT TEXTAREA CONTAINER
-  =========================== */
+       COMMENT TEXTAREA CONTAINER
+    =========================== */
 .comment-textarea-container {
   margin-top: 20px;
   padding-top: 20px;
@@ -98,9 +98,9 @@ body {
 }
 
 /* ===========================
-     CURRENT USER AVATAR
-     (Placed inside the tab container)
-  =========================== */
+       CURRENT USER AVATAR
+       (Placed inside the tab container)
+    =========================== */
 .tab .current-user-avatar-container {
   margin-left: auto;
   margin-right: 10px;
@@ -114,8 +114,8 @@ body {
 }
 
 /* ===========================
-     GITLAB-LIKE BUTTONS & TABS
-  =========================== */
+       GITLAB-LIKE BUTTONS & TABS
+    =========================== */
 .gl-button,
 .gl-button.btn-block {
   display: inline-flex;
@@ -218,8 +218,8 @@ body {
 }
 
 /* ===========================
-     REACTIONS & REACTION POPUP
-  =========================== */
+       REACTIONS & REACTION POPUP
+    =========================== */
 
 /* Container to center reaction buttons */
 .reactions-center {
@@ -268,23 +268,35 @@ body {
   vertical-align: middle;
 }
 
-/* Generic fallback for reaction popup */
+/* New container for reaction toggle and popup */
+.reaction-container {
+  position: relative;
+  display: inline-block;
+}
+
+/* Updated reaction popup styling: auto-positioned relative to its container */
 #reaction-popup {
   position: absolute;
+  top: 100%;
+  left: 0;
   padding: 5px;
   z-index: 1000;
   border-radius: 8px;
   background-color: #f6f8fa;
   border: 1.5px solid #dcdcde;
   color: inherit;
+  display: none;
+  white-space: nowrap; /* Ensures buttons remain on one line */
 }
+
 #reaction-popup button {
-  margin-right: 10px;
+  display: inline-block;
+  margin-right: 5px; /* smaller margin between buttons */
 }
 
 /* ===========================
-     ISSUES CONTAINER
-  =========================== */
+       ISSUES CONTAINER
+    =========================== */
 #issuesContainer {
   padding: 10px;
   border-radius: 8px;
@@ -296,8 +308,8 @@ body {
 }
 
 /* ===========================
-     COMMENT ACTIONS
-  =========================== */
+       COMMENT ACTIONS
+    =========================== */
 .comment-actions {
   display: flex;
   justify-content: space-between;
@@ -319,8 +331,8 @@ body {
 }
 
 /* ===========================
-     WIDGET & LOADING INDICATOR
-  =========================== */
+       WIDGET & LOADING INDICATOR
+    =========================== */
 .beblob-widget {
   position: relative;
   min-height: 300px;
@@ -362,8 +374,8 @@ body {
 }
 
 /* ===========================
-     THEME SELECTOR
-  =========================== */
+       THEME SELECTOR
+    =========================== */
 .theme-selector-container {
   margin-bottom: 10px;
   text-align: right;
@@ -373,8 +385,8 @@ body {
 }
 
 /* ===========================
-     THEME STYLES & OVERRIDES
-  =========================== */
+       THEME STYLES & OVERRIDES
+    =========================== */
 
 /* --- Dark Theme --- */
 .beblob-widget.theme-dark {
@@ -597,8 +609,8 @@ body {
 }
 
 /* ===========================
-     EDITOR TOOLBAR BUTTONS (THEMED)
-  =========================== */
+       EDITOR TOOLBAR BUTTONS (THEMED)
+    =========================== */
 .editor-toolbar a {
   display: inline-block;
   text-align: center;
@@ -651,8 +663,8 @@ body {
 }
 
 /* ===========================
-     UNIFIED MARKDOWN EDITOR STYLES (CodeMirror)
-  =========================== */
+       UNIFIED MARKDOWN EDITOR STYLES (CodeMirror)
+    =========================== */
 .beblob-widget.theme-dark #Preview,
 .beblob-widget.theme-dark .CodeMirror {
   background-color: #1d1f21;

@@ -282,9 +282,7 @@ function renderReactions(reactions, accessToken, issueIid) {
   }
   container.innerHTML = '';
 
-  const centerDiv = document.createElement('div');
-  centerDiv.className = 'reactions-center';
-
+  // Aggregate reaction counts
   let reactionData = {};
   reactions.forEach((r) => {
     const name = r.name;
@@ -297,27 +295,28 @@ function renderReactions(reactions, accessToken, issueIid) {
     }
   });
 
+  const centerDiv = document.createElement('div');
+  centerDiv.className = 'reactions-center';
+
+  // Render buttons for the main reactions ("thumbsup", "thumbsdown")
   ['thumbsup', 'thumbsdown'].forEach((name) => {
     const data = reactionData[name] || { count: 0, myAwardId: null };
     const btn = document.createElement('button');
     btn.className = 'reaction-btn';
-    btn.innerHTML = `<span class="gl-button-text">${emojiMap[name]}</span> <span class="reaction-count">${data.count}</span>`;
+    btn.innerHTML = `<span class="gl-button-text">${emojiMap[name] || ''}</span> <span class="reaction-count">${data.count}</span>`;
     btn.addEventListener('click', async () => {
       await toggleReaction(name, accessToken, issueIid);
     });
     centerDiv.appendChild(btn);
   });
 
+  // Render additional reactions (if any) horizontally
   Object.keys(reactionData).forEach((name) => {
-    if (
-      name !== 'thumbsup' &&
-      name !== 'thumbsdown' &&
-      reactionData[name].count > 0
-    ) {
+    if (name !== 'thumbsup' && name !== 'thumbsdown') {
       const data = reactionData[name];
       const btn = document.createElement('button');
       btn.className = 'reaction-btn';
-      btn.innerHTML = `<span class="gl-button-text">${emojiMap[name]}</span> <span class="reaction-count">${data.count}</span>`;
+      btn.innerHTML = `<span class="gl-button-text">${emojiMap[name] || ''}</span> <span class="reaction-count">${data.count}</span>`;
       btn.addEventListener('click', async () => {
         await toggleReaction(name, accessToken, issueIid);
       });
@@ -325,50 +324,50 @@ function renderReactions(reactions, accessToken, issueIid) {
     }
   });
 
+  // Create a container for the toggle button and popup
+  const reactionContainer = document.createElement('div');
+  reactionContainer.className = 'reaction-container';
+
+  // Create the toggle button (to open the popup)
   const toggleBtn = document.createElement('button');
   toggleBtn.className = 'reaction-toggle-btn';
   toggleBtn.innerHTML = `<span class="gl-button-text">
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-      <path d="M12 1a11 11 0 1 0 11 11A11.013 11.013 0 0 0 12 1zm0 20a9 9 0 1 1 9-9 9.01 9.01 0 0 1-9 9zM8 11V9a1 1 0 0 1 2 0v2a1 1 0 0 1-2 0zm8-2v2a1 1 0 0 1-2 0V9a1 1 0 0 1 2 0zm-8 5h8a4 4 0 0 1-8 0z"/>
-    </svg>
-  </span>`;
-  centerDiv.appendChild(toggleBtn);
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+        <path d="M12 1a11 11 0 1 0 11 11A11.013 11.013 0 0 0 12 1zm0 20a9 9 0 1 1 9-9 9.01 9.01 0 0 1-9 9zM8 11V9a1 1 0 0 1 2 0v2a1 1 0 0 1-2 0zm8-2v2a1 1 0 0 1-2 0V9a1 1 0 0 1 2 0zm-8 5h8a4 4 0 0 1-8 0z"/>
+      </svg>
+    </span>`;
 
+  // Create the popup element
+  const popup = document.createElement('div');
+  popup.id = 'reaction-popup';
+  popup.className = 'reaction-popup'; // CSS positions this automatically
+  // (Initially hidden via CSS)
+
+  // Append toggle button and popup to reaction container
+  reactionContainer.appendChild(toggleBtn);
+  reactionContainer.appendChild(popup);
+
+  // Append the reaction container to the center div
+  centerDiv.appendChild(reactionContainer);
+
+  // Clear and update the main container
   container.innerHTML = '';
   container.appendChild(centerDiv);
 
-  let popup = document.getElementById('reaction-popup');
-  if (!popup) {
-    popup = document.createElement('div');
-    popup.id = 'reaction-popup';
-    popup.style.display = 'none';
-    popup.style.position = 'absolute';
-    popup.style.zIndex = 1000;
-    // Append inside the widget container so that theme-specific styles are applied.
-    const widget = document.querySelector('.beblob-widget');
-    if (widget) {
-      widget.appendChild(popup);
-    } else {
-      document.body.appendChild(popup);
-    }
-  }
-
+  // Toggle button event: populate and toggle the popup
   toggleBtn.addEventListener('click', () => {
-    if (popup.style.display === 'none') {
+    if (popup.style.display === 'none' || !popup.style.display) {
       popup.innerHTML = '';
       predefinedReactions.forEach((name) => {
         const btn = document.createElement('button');
         btn.className = 'reaction-popup-btn';
-        btn.innerHTML = `<span class="gl-button-text">${emojiMap[name]}</span>`;
+        btn.innerHTML = `<span class="gl-button-text">${emojiMap[name] || ''}</span>`;
         btn.addEventListener('click', async () => {
           await toggleReaction(name, accessToken, issueIid);
           popup.style.display = 'none';
         });
         popup.appendChild(btn);
       });
-      const rect = toggleBtn.getBoundingClientRect();
-      popup.style.top = rect.bottom + window.scrollY + 'px';
-      popup.style.left = rect.left + window.scrollX + 'px';
       popup.style.display = 'block';
     } else {
       popup.style.display = 'none';
