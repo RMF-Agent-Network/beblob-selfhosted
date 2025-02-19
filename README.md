@@ -72,7 +72,7 @@ BeBlob supports several configuration options that you set as data attributes on
   A Boolean flag (or string value `"true"`/`"false"`) indicating whether you are running in development mode. In development mode, BeBlob loads its assets locally; in production, assets are loaded from a CDN (e.g., unpkg).
 
 - **beblobVersion**  
-  The version of BeBlob to load when retrieving the script from a CDN. This allows you to lock your site to a specific release (e.g., `1.3.0`) or update it as needed. See [latest release here](https://www.npmjs.com/package/beblob).
+  The version of BeBlob to load when retrieving the script from a CDN. This allows you to lock your site to a specific release (e.g., `1.6.0`) or update it as needed. See the [latest release here](https://www.npmjs.com/package/beblob).
 
 - **theme**  
   Specifies the visual theme for the BeBlob widget. Four themes are available:
@@ -90,13 +90,13 @@ To integrate BeBlob into your website, include the following minimal HTML code i
 <!-- Include the BeBlob script with necessary configuration data attributes -->
 <script
   id="beblob-script"
-  src="https://unpkg.com/beblob@1.3.0/dist/beblob.js"
+  src="https://unpkg.com/beblob@1.6.0/dist/beblob.js"
   data-client-id="YOUR_GITLAB_APPLICATION_ID"
   data-redirect-uri="https://your-blog.com/"
   data-project-name="Your GitLab Project Name"
   data-issue-mapping-strategy="pageTitle"
   data-dev-mode="false"
-  data-beblob-version="1.3.0"
+  data-beblob-version="1.6.0"
   data-theme="light"
 ></script>
 
@@ -119,7 +119,7 @@ beblob:
   redirect_uri: "https://yourwebsite.com"
   project_name: "<your-gitlab-project-name>"
   issue_mapping_strategy: "pageTitle"
-  version: "1.5.0"
+  version: "1.6.0"
   theme: "light"
 ```
 
