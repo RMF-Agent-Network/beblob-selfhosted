@@ -7,7 +7,9 @@
     "lint": "eslint --fix 'src/**/*.{js,jsx}'",
     "format": "prettier --write 'src/**/*.{js,jsx,json,css,scss,md}'",
     "start": "webpack serve --config webpack.config.js --mode development",
-    "build": "webpack --config webpack.config.js"
+    "build": "webpack --config webpack.config.js",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "repository": {
     "type": "git",
@@ -39,9 +41,11 @@
     "eslint": "^9.20.1",
     "eslint-config-prettier": "^10.0.1",
     "eslint-plugin-prettier": "^5.2.3",
+    "jsdom": "^28.0.0",
     "prettier": "^3.5.1",
     "style-loader": "^3.3.4",
     "url-loader": "^4.1.1",
+    "vitest": "^4.0.18",
     "webpack-cli": "^5.1.4"
   }
 }
