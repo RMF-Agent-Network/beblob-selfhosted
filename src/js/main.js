@@ -2,6 +2,8 @@ import { Marked } from 'marked';
 import { markedHighlight } from 'marked-highlight';
 import hljs from 'highlight.js';
 import SimpleMDE from 'simplemde';
+import { buildApiUrl, buildOAuthAuthorizeUrl, buildOAuthTokenUrl } from './urls.js';
+import { parseConfig } from './config.js';
 
 // Define our issue fetch strategies
 const IssueFetchStrategy = {
@@ -155,10 +157,10 @@ function injectBeBlobUI(config) {
   }
 }
 
-async function createIssue(accessToken, title, description) {
+export async function createIssue(gitlabUrl, accessToken, title, description) {
   console.log('BeBlob: Creating new issue with title:', title);
   try {
-    const apiUrl = `https://gitlab.com/api/v4/projects/${window.projectId}/issues`;
+    const apiUrl = buildApiUrl(gitlabUrl, `projects/${window.projectId}/issues`);
     const body = { title: title, description: description || '' };
     const response = await fetch(apiUrl, {
       method: 'POST',
@@ -180,10 +182,10 @@ async function createIssue(accessToken, title, description) {
   }
 }
 
-async function fetchReactions(accessToken, issueIid) {
+export async function fetchReactions(gitlabUrl, accessToken, issueIid) {
   console.log('BeBlob: Fetching reactions for issue', issueIid);
   try {
-    const apiUrl = `https://gitlab.com/api/v4/projects/${window.projectId}/issues/${issueIid}/award_emoji`;
+    const apiUrl = buildApiUrl(gitlabUrl, `projects/${window.projectId}/issues/${issueIid}/award_emoji`);
     const response = await fetch(apiUrl, {
       headers: { Authorization: `Bearer ${accessToken}` },
     });
@@ -199,10 +201,10 @@ async function fetchReactions(accessToken, issueIid) {
   }
 }
 
-async function addReaction(accessToken, issueIid, reactionName) {
+export async function addReaction(gitlabUrl, accessToken, issueIid, reactionName) {
   console.log('BeBlob: Adding reaction', reactionName, 'to issue', issueIid);
   try {
-    const apiUrl = `https://gitlab.com/api/v4/projects/${window.projectId}/issues/${issueIid}/award_emoji`;
+    const apiUrl = buildApiUrl(gitlabUrl, `projects/${window.projectId}/issues/${issueIid}/award_emoji`);
     const response = await fetch(apiUrl, {
       method: 'POST',
       headers: {
@@ -223,10 +225,10 @@ async function addReaction(accessToken, issueIid, reactionName) {
   }
 }
 
-async function removeReaction(accessToken, issueIid, awardId) {
+export async function removeReaction(gitlabUrl, accessToken, issueIid, awardId) {
   console.log('BeBlob: Removing reaction, awardId:', awardId);
   try {
-    const apiUrl = `https://gitlab.com/api/v4/projects/${window.projectId}/issues/${issueIid}/award_emoji/${awardId}`;
+    const apiUrl = buildApiUrl(gitlabUrl, `projects/${window.projectId}/issues/${issueIid}/award_emoji/${awardId}`);
     const response = await fetch(apiUrl, {
       method: 'DELETE',
       headers: { Authorization: `Bearer ${accessToken}` },
@@ -242,39 +244,39 @@ async function removeReaction(accessToken, issueIid, awardId) {
   }
 }
 
-async function toggleReaction(name, accessToken, issueIid) {
+export async function toggleReaction(gitlabUrl, name, accessToken, issueIid) {
   if (!window.currentUser) {
     await fetchCurrentUser(accessToken);
   }
-  const updatedReactions = await fetchReactions(accessToken, issueIid);
+  const updatedReactions = await fetchReactions(gitlabUrl, accessToken, issueIid);
   const existing = updatedReactions.find(
     (r) => r.name === name && r.user && r.user.id === window.currentUser.id
   );
   if (existing) {
-    await removeReaction(accessToken, issueIid, existing.id);
+    await removeReaction(gitlabUrl, accessToken, issueIid, existing.id);
   } else {
     try {
-      await addReaction(accessToken, issueIid, name);
+      await addReaction(gitlabUrl, accessToken, issueIid, name);
     } catch (err) {
       if (err.message.indexOf('already been taken') !== -1) {
-        const updatedReactions2 = await fetchReactions(accessToken, issueIid);
+        const updatedReactions2 = await fetchReactions(gitlabUrl, accessToken, issueIid);
         const duplicate = updatedReactions2.find(
           (r) =>
             r.name === name && r.user && r.user.id === window.currentUser.id
         );
         if (duplicate) {
-          await removeReaction(accessToken, issueIid, duplicate.id);
+          await removeReaction(gitlabUrl, accessToken, issueIid, duplicate.id);
         }
       } else {
         console.error('Error toggling reaction:', err);
       }
     }
   }
-  const newReactions = await fetchReactions(accessToken, issueIid);
-  renderReactions(newReactions, accessToken, issueIid);
+  const newReactions = await fetchReactions(gitlabUrl, accessToken, issueIid);
+  renderReactions(gitlabUrl, newReactions, accessToken, issueIid);
 }
 
-function renderReactions(reactions, accessToken, issueIid) {
+export function renderReactions(gitlabUrl, reactions, accessToken, issueIid) {
   const container = document.getElementById('reactionsContainer');
   if (!container) {
     console.error('BeBlob: Reactions container not found.');
@@ -305,7 +307,7 @@ function renderReactions(reactions, accessToken, issueIid) {
     btn.className = 'reaction-btn';
     btn.innerHTML = `<span class="gl-button-text">${emojiMap[name] || ''}</span> <span class="reaction-count">${data.count}</span>`;
     btn.addEventListener('click', async () => {
-      await toggleReaction(name, accessToken, issueIid);
+      await toggleReaction(gitlabUrl, name, accessToken, issueIid);
     });
     centerDiv.appendChild(btn);
   });
@@ -318,7 +320,7 @@ function renderReactions(reactions, accessToken, issueIid) {
       btn.className = 'reaction-btn';
       btn.innerHTML = `<span class="gl-button-text">${emojiMap[name] || ''}</span> <span class="reaction-count">${data.count}</span>`;
       btn.addEventListener('click', async () => {
-        await toggleReaction(name, accessToken, issueIid);
+        await toggleReaction(gitlabUrl, name, accessToken, issueIid);
       });
       centerDiv.appendChild(btn);
     }
@@ -363,7 +365,7 @@ function renderReactions(reactions, accessToken, issueIid) {
         btn.className = 'reaction-popup-btn';
         btn.innerHTML = `<span class="gl-button-text">${emojiMap[name] || ''}</span>`;
         btn.addEventListener('click', async () => {
-          await toggleReaction(name, accessToken, issueIid);
+          await toggleReaction(gitlabUrl, name, accessToken, issueIid);
           popup.style.display = 'none';
         });
         popup.appendChild(btn);
@@ -375,6 +377,55 @@ function renderReactions(reactions, accessToken, issueIid) {
   });
 
   console.log('BeBlob: Reactions rendered');
+}
+
+// --- Extracted OAuth functions for testability ---
+
+/**
+ * Redirect the user to GitLab's OAuth authorize page.
+ * @param {object} config - Config object with gitlabUrl, clientId, redirectUri.
+ */
+export function authenticateWithGitLab(config) {
+  const originalUrl = window.location.href;
+  const state = encodeURIComponent(originalUrl);
+  const oauthUrl = buildOAuthAuthorizeUrl(config.gitlabUrl, {
+    clientId: config.clientId,
+    redirectUri: config.redirectUri,
+    state: state,
+  });
+  console.log('BeBlob: Redirecting to GitLab OAuth:', oauthUrl);
+  window.location.href = oauthUrl;
+}
+
+/**
+ * Exchange an authorization code for an access token.
+ * @param {object} config - Config object with gitlabUrl, clientId, redirectUri.
+ * @param {string} code - The authorization code from the OAuth redirect.
+ */
+export async function requestAccessToken(config, code) {
+  console.log('BeBlob: Requesting access token...');
+  const tokenUrl = buildOAuthTokenUrl(config.gitlabUrl);
+  const params = {
+    client_id: config.clientId,
+    code: code,
+    grant_type: 'authorization_code',
+    redirect_uri: config.redirectUri,
+  };
+  try {
+    const response = await fetch(tokenUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(params),
+    });
+    if (!response.ok) throw new Error('Failed to get access token');
+    const data = await response.json();
+    const accessToken = data.access_token;
+    localStorage.setItem(LOCAL_STORAGE_KEY, accessToken);
+    console.log('BeBlob: Access token received');
+    return accessToken;
+  } catch (error) {
+    console.error('BeBlob error requesting access token:', error);
+  }
 }
 
 async function init(config) {
@@ -393,6 +444,8 @@ async function init(config) {
     throw new Error('Missing required BeBlob configuration');
   }
   console.log('BeBlob: Config validated', config);
+
+  const gitlabUrl = config.gitlabUrl;
 
   // Inject CSS and UI using our config
   injectBeBlobCSS(config);
@@ -413,16 +466,6 @@ async function init(config) {
     tabSize: 4,
   });
   console.log('BeBlob: SimpleMDE editor initialized');
-
-  // --- OAuth Handling with Static Callback URL & State Parameter ---
-  function authenticateWithGitLab() {
-    const staticRedirectUri = config.redirectUri;
-    const originalUrl = window.location.href;
-    const state = encodeURIComponent(originalUrl);
-    const oauthUrl = `https://gitlab.com/oauth/authorize?client_id=${config.clientId}&redirect_uri=${encodeURIComponent(staticRedirectUri)}&response_type=code&state=${state}`;
-    console.log('BeBlob: Redirecting to GitLab OAuth:', oauthUrl);
-    window.location.href = oauthUrl;
-  }
 
   // New: Update the auth button text and functionality based on login state.
   function updateAuthButton() {
@@ -459,7 +502,7 @@ async function init(config) {
         window.location.reload();
       } else {
         // Login
-        authenticateWithGitLab();
+        authenticateWithGitLab(config);
       }
     });
     console.log('BeBlob: Auth button event listener attached');
@@ -520,37 +563,18 @@ async function init(config) {
     hideLoadingOverlay();
   }
 
-  async function requestAccessToken(code) {
-    console.log('BeBlob: Requesting access token...');
-    const tokenUrl = 'https://gitlab.com/oauth/token';
-    const params = {
-      client_id: config.clientId,
-      code: code,
-      grant_type: 'authorization_code',
-      redirect_uri: config.redirectUri,
-    };
-    try {
-      const response = await fetch(tokenUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(params),
-      });
-      if (!response.ok) throw new Error('Failed to get access token');
-      const data = await response.json();
-      const accessToken = data.access_token;
-      localStorage.setItem(LOCAL_STORAGE_KEY, accessToken);
-      console.log('BeBlob: Access token received');
+  async function _requestAccessToken(code) {
+    const accessToken = await requestAccessToken(config, code);
+    if (accessToken) {
       updateAuthButton();
       await fetchProjectId(accessToken);
-    } catch (error) {
-      console.error('BeBlob error requesting access token:', error);
     }
   }
 
   async function fetchProjectId(accessToken) {
     console.log('BeBlob: Fetching project ID for project:', config.projectName);
     try {
-      const projectsUrl = `https://gitlab.com/api/v4/projects?search=${encodeURIComponent(config.projectName)}`;
+      const projectsUrl = buildApiUrl(gitlabUrl, `projects?search=${encodeURIComponent(config.projectName)}`);
       const response = await fetch(projectsUrl, {
         headers: { Authorization: `Bearer ${accessToken}` },
       });
@@ -617,6 +641,7 @@ async function init(config) {
       ) {
         console.log('BeBlob: No issue found. Creating a new issue...');
         issue = await createIssue(
+          gitlabUrl,
           accessToken,
           document.title,
           'Automatically created by BeBlob.'
@@ -644,13 +669,13 @@ async function init(config) {
       fetchParam
     );
     try {
-      let apiUrl = `https://gitlab.com/api/v4/projects/${projectId}/issues`;
+      let apiUrl = buildApiUrl(gitlabUrl, `projects/${projectId}/issues`);
       if (fetchType === IssueFetchStrategy.URL) {
         apiUrl += `?search=${encodeURIComponent(fetchParam)}`;
       } else if (fetchType === IssueFetchStrategy.PAGE_TITLE) {
         apiUrl += `?search=${encodeURIComponent(fetchParam.split('/').pop())}`;
       } else if (fetchType === IssueFetchStrategy.ISSUE_ID) {
-        apiUrl = `https://gitlab.com/api/v4/projects/${projectId}/issues/${fetchParam}`;
+        apiUrl = buildApiUrl(gitlabUrl, `projects/${projectId}/issues/${fetchParam}`);
       }
       const response = await fetch(apiUrl, {
         headers: { Authorization: `Bearer ${accessToken}` },
@@ -692,12 +717,10 @@ async function init(config) {
   async function fetchIssueDiscussions(issueIid, accessToken) {
     console.log('BeBlob: Fetching discussions for issue', issueIid);
     try {
-      const response = await fetch(
-        `https://gitlab.com/api/v4/projects/${window.projectId}/issues/${issueIid}/discussions`,
-        {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        }
-      );
+      const apiUrl = buildApiUrl(gitlabUrl, `projects/${window.projectId}/issues/${issueIid}/discussions`);
+      const response = await fetch(apiUrl, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
       if (!response.ok) {
         if (response.status === 401) {
           localStorage.removeItem(LOCAL_STORAGE_KEY);
@@ -752,8 +775,8 @@ async function init(config) {
       issueElement.appendChild(noCommentsElement);
     }
     issuesContainer.appendChild(issueElement);
-    const reactions = await fetchReactions(accessToken, issue.iid);
-    renderReactions(reactions, accessToken, issue.iid);
+    const reactions = await fetchReactions(gitlabUrl, accessToken, issue.iid);
+    renderReactions(gitlabUrl, reactions, accessToken, issue.iid);
     console.log('BeBlob: Issue display complete');
   }
 
@@ -801,7 +824,7 @@ async function init(config) {
   async function fetchCurrentUser(accessToken) {
     console.log('BeBlob: Fetching current user...');
     try {
-      const currentUserUrl = 'https://gitlab.com/api/v4/user';
+      const currentUserUrl = buildApiUrl(gitlabUrl, 'user');
       const response = await fetch(currentUserUrl, {
         headers: { Authorization: `Bearer ${accessToken}` },
       });
@@ -901,7 +924,7 @@ async function init(config) {
   async function addCommentToIssue(accessToken, commentBody) {
     console.log('BeBlob: Adding comment to issue...');
     try {
-      const apiUrl = `https://gitlab.com/api/v4/projects/${window.projectId}/issues/${window.currentIssueId}/notes`;
+      const apiUrl = buildApiUrl(gitlabUrl, `projects/${window.projectId}/issues/${window.currentIssueId}/notes`);
       const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
@@ -924,8 +947,8 @@ async function init(config) {
     const state = urlParams.get('state');
     if (code) {
       console.log('BeBlob: Handling GitLab redirect with code:', code);
-      await requestAccessToken(code);
-      // Remove the "code" and "state" parameters so they aren’t re-submitted on refresh.
+      await _requestAccessToken(code);
+      // Remove the "code" and "state" parameters so they aren't re-submitted on refresh.
       const url = new URL(window.location);
       url.searchParams.delete('code');
       url.searchParams.delete('state');
@@ -948,27 +971,15 @@ async function init(config) {
 document.addEventListener('DOMContentLoaded', () => {
   const script = document.getElementById('beblob-script');
   if (script && script.dataset) {
-    const autoConfig = {
-      clientId: script.dataset.clientId,
-      redirectUri: script.dataset.redirectUri,
-      projectName: script.dataset.projectName,
-      issueMappingStrategy: script.dataset.issueMappingStrategy,
-      issueId: script.dataset.issueId, // Optional; required only if mapping strategy is "issueId"
-      devMode: script.dataset.devMode, // "true" or "false"
-      beblobVersion: script.dataset.beblobVersion, // e.g., "1.2.0"
-      theme: script.dataset.theme || 'light',
-    };
-    if (
-      !autoConfig.clientId ||
-      !autoConfig.redirectUri ||
-      !autoConfig.projectName ||
-      !autoConfig.issueMappingStrategy
-    ) {
+    let autoConfig;
+    try {
+      autoConfig = parseConfig(script);
+    } catch (err) {
       console.error(
         'BeBlob auto init error: Missing required configuration parameters:',
-        autoConfig
+        err.message
       );
-      throw new Error('Missing required BeBlob configuration in auto init');
+      throw err;
     }
     console.log('BeBlob auto init: Found valid config', autoConfig);
     init(autoConfig).catch((err) => {
@@ -979,15 +990,5 @@ document.addEventListener('DOMContentLoaded', () => {
       'BeBlob auto init error: No configuration data attributes found in the script tag.'
     );
     throw new Error('Missing required BeBlob configuration in auto init');
-  }
-
-  const storedToken = localStorage.getItem(LOCAL_STORAGE_KEY);
-  if (storedToken) {
-    fetchProjectId(storedToken);
-    fetchCurrentUser(storedToken).then((user) => {
-      if (user) {
-        displayCurrentUserAvatar(user);
-      }
-    });
   }
 });
