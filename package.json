@@ -1,6 +1,6 @@
 {
   "name": "beblob",
-  "version": "1.6.0",
+  "version": "2.0.0",
   "description": "This is an open-source widget allowing bloggers to insert comment section to their blogs hosted on GitLab Pages. The comments use GitLab issues underneath.",
   "main": "dist/beblob.js",
   "scripts": {
@@ -22,7 +22,6 @@
   },
   "homepage": "https://gitlab.com/antonbelev/beblob#readme",
   "dependencies": {
-    "axios": "^1.6.7",
     "codemirror": "5.65.16",
     "copy-webpack-plugin": "^12.0.2",
     "express": "^4.19.2",

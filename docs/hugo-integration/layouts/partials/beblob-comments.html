@@ -1,0 +1,18 @@
+{{ if .Site.Params.beblob.enabled }}
+<div id="beblob_thread">
+  <noscript>Please enable JavaScript to view comments.</noscript>
+</div>
+<script
+  id="beblob-script"
+  src="{{ .Site.Params.beblob.src | default (printf "/js/beblob.js") }}"
+  data-gitlab-url="{{ .Site.Params.beblob.gitlab_url }}"
+  data-client-id="{{ .Site.Params.beblob.client_id }}"
+  data-redirect-uri="{{ .Site.Params.beblob.redirect_uri }}"
+  data-project-name="{{ .Site.Params.beblob.project_name }}"
+  data-issue-mapping-strategy="{{ .Site.Params.beblob.issue_mapping_strategy | default "pageTitle" }}"
+  data-dev-mode="{{ .Site.Params.beblob.dev_mode | default "false" }}"
+  data-beblob-version="{{ .Site.Params.beblob.version | default "2.0.0" }}"
+  data-theme="{{ .Site.Params.beblob.theme | default "light" }}"
+  defer>
+</script>
+{{ end }}

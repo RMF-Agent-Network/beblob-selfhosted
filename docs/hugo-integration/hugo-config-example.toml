@@ -1,0 +1,20 @@
+# Add to your hugo.toml or config.toml
+
+[params.beblob]
+  enabled = true
+  # URL of your self-hosted GitLab instance (omit for gitlab.com)
+  gitlab_url = "https://gitlab.yourcompany.com"
+  # OAuth Application ID from your GitLab instance
+  client_id = "YOUR_APPLICATION_ID"
+  # Must match the Redirect URI in your GitLab OAuth app
+  redirect_uri = "https://your-hugo-site.yourcompany.com/"
+  # GitLab project name where issues will be stored
+  project_name = "site-comments"
+  # How pages map to issues: "pageTitle", "url", or "issueId"
+  issue_mapping_strategy = "pageTitle"
+  version = "2.0.0"
+  # Path to the self-hosted beblob.js (copy dist/beblob.js to your Hugo static/js/)
+  src = "/js/beblob.js"
+  # Theme: "dark", "white", "light", "classic"
+  theme = "dark"
+  dev_mode = false
