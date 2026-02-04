@@ -216,7 +216,7 @@ This fork ([RMF-Agent-Network/beblob-selfhosted](https://github.com/RMF-Agent-Ne
 - **Hugo integration docs** — Ready-to-use Hugo partial template and configuration example.
 - **Self-hosted setup guide** — Step-by-step guide for deploying with a self-hosted GitLab instance.
 - **Removed unused `axios` dependency** — The code uses native `fetch`; axios was a dead dependency.
-- **GitHub CI** — Added GitHub Actions workflow (replacing `.gitlab-ci.yml`).
+- **GitLab CI preserved** — The original `.gitlab-ci.yml` is retained for use with self-hosted GitLab CI/CD.
 
 ## Sites Using BeBlob
 
